@@ -1,5 +1,5 @@
-
-\section{Using multiple threads for super linear speedup}
+Using multiple threads for super linear speedup
+...............................................
 
 In programs there are often two functions calling each other where the
 calling function is producing data, and the called function is storing the data. 
@@ -7,30 +7,32 @@ By using two threads you can more than double the speed of the
 code. This is due to each thread having access to a set of registers to
 hold data, and because two threads eliminate the overhead caused by function calls.
 
-\subsection{Code structure}
+Code structure
+---
 
 As an example, we use JPEG encoding where discretised DCT parameters are
 stored as a string of bits, and runs of '0' values are run length encoded.
 The two functions are doing the encoding and the bit shuffling/storing. The
 code is based on source code from \lstinline$libjpeg$ by Thomas G Lane et al.
 
-The program comprises two functions, \lstinline+encode+ and
-\lstinline+emit_bits+, \lstinline+encode+ makes repeated calls to
-\lstinline+emit_bits+. The trick is that the latter function requires some
+The program comprises two functions, ``encode`` and
+``emit_bits``, ``encode`` makes repeated calls to
+``emit_bits``. The trick is that the latter function requires some
 persistent state. This state can be stored in one of three places:
-\begin{itemize}
-  \item It can be stored in a structure that is passed to
-    \lstinline+emit_bits+ on every call (an object oriented way of programming)
-  \item It can be stored in a structure that is a persistent variable inside
-    \lstinline+emit_bits+  (traditional procedural programming style)
-  \item It can be stored in a thread that runs \lstinline+emit_bits+
-    (a concurrent programming style)
-\end{itemize}
-The three programs are shown in an appendix on pages \pageref{r1}, \pageref{r2}, and
-\pageref{r3}. Global definitions used by all three programs is shown on
-\pageref{r4}.
 
-\subsection{Timings}
+* It can be stored in a structure that is passed to
+    ``emit_bits`` on every call (an object oriented way of programming)
+
+* It can be stored in a structure that is a persistent variable inside
+    ``emit_bits``  (traditional procedural programming style)
+
+* It can be stored in a thread that runs ``emit_bits``
+    (a concurrent programming style)
+
+The three programs are shown at the end
+
+Timings
+---
 
 The execution times are as follows (measured on a 400 Mhz XCore, compiled
 with -O2 and array bound checks switched off):
@@ -45,44 +47,36 @@ with -O2 and array bound checks switched off):
 
 Note that the concurrent version runs more than three times faster, using only
 two threads. The extra factor 1.5 speed-up is due to two factors:
-\begin{enumerate}
-\item Foremost, the program has access to twice the number of register
+
+1. Foremost, the program has access to twice the number of register
   variables. This means that all variables are kept in registers. In
   particular, the state used by \lstinline+emit_bits+ is kept in registers.
-\item 
-  Second, Function calls are avoided, avoiding the need to save registers, and
+
+2. Second, Function calls are avoided, avoiding the need to save registers, and
   create parameter lists. This can be resolved by inlining functions, but
   in addition to a code bloat (\lstinline+emit_bits+ is called three
   times), it also leads to registers being spilled to the stack.
 \end{enumerate}
 
 
-\subsection{Code listings for threads}
+Code listings for threads
+---
 
-All three code segments assume the following global definitions:
+All three code segments assume the following global definitions::
 
-\begin{lstlisting}
-struct pers {
-    int current;
-    int length;
-    int ncodes;
-    int codes[512];
-};
+  struct pers {
+      int current;
+      int length;
+      int ncodes;
+      int codes[512];
+  };
 
-int ehufco[256], ehufsi[256];
-\end{lstlisting}
-\label{r4}
+  int ehufco[256], ehufsi[256];
 
 The program written in an object-oriented, procedural, and concurrent style are listed
-on the subsequent three pages. The last page shows the main program.
+on the subsequent three pages. The last page shows the main program::
 
-\newpage
-\begin{lstlisting}
-void emit_bits_oo(struct pers &state,int code,int length) {
-
-
-
-
+ void emit_bits_oo(struct pers &state,int code,int length) {
     state.length += length;
     if (state.length > 32) {
         int t;
@@ -96,9 +90,8 @@ void emit_bits_oo(struct pers &state,int code,int length) {
         state.current <<= length;
         state.current |= code;
     }
-
-}
-void encode_oo(int block[64]) {
+ }
+ void encode_oo(int block[64]) {
     int temp, i, k, temp2, nbits;
     int r = 0;
     struct pers state; state.ncodes = state.length = 0;
@@ -122,16 +115,11 @@ void encode_oo(int block[64]) {
             r = 0;
         }
     }
-}
-\end{lstlisting}
-\label{r1}
-\newpage
-\begin{lstlisting}
-void emit_bits_p(int code, int length) {
+ }
+
+
+ void emit_bits_p(int code, int length) {
     static struct pers state;
-
-
-
     state.length += length;
     if (state.length > 32) {
         int t;
@@ -145,9 +133,8 @@ void emit_bits_p(int code, int length) {
         state.current <<= length;
         state.current |= code;
     }
-
-}
-void encode_p(int block[64]) {
+ }
+ void encode_p(int block[64]) {
     int temp, i, k, temp2, nbits;
     int r = 0;
 
@@ -171,13 +158,8 @@ void encode_p(int block[64]) {
             r = 0;
         }
     }
-}
-\end{lstlisting}
-\label{r2}
-
-\newpage
-\begin{lstlisting}
-void emit_bits_c(streaming chanend inp) {
+ }
+ void emit_bits_c(streaming chanend inp) {
   int code, length, state_current;
   int state_length = 0, state_ncodes = 0, state_codes[512];
   while(1) {
@@ -196,8 +178,8 @@ void emit_bits_c(streaming chanend inp) {
         state_current |= code;
     }
   }
-}
-void encode_c(streaming chanend outp, int block[64]) {
+ }
+ void encode_c(streaming chanend outp, int block[64]) {
     int temp, i, k, temp2, nbits;
     int r = 0;
 
@@ -221,7 +203,4 @@ void encode_c(streaming chanend outp, int block[64]) {
             r = 0;
         }
     }
-}
-\end{lstlisting}
-\label{r3}
-
+ }
