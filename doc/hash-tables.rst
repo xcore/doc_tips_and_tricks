@@ -40,3 +40,7 @@ The polynomial should be chosen as follows:
 If all values that are to be stored are known at compile time, then the
 polynomial can be chosen to minimise the hashtable by performing an
 exhaustive search over all possible polynomials.
+
+.. [knuth3] Donald Knuth, *The Art of Computer Programming: Sorting and Searching*, ISBN 0201896850.
+
+.. [wikipedia-primitive-polynomial] *Primitive Polynomial pages on Wikipedia* http://en.wikipedia.org/wiki/Primitive_polynomial
