@@ -28,5 +28,9 @@ will produce an accurate square root::
     return root;
   }
 
-See Hacker's delight~\cite{warrenjr} and Paul Hsieh's
-website~\cite{sqrt-hsieh} for an in-depth discussion.
+See Hacker's delight [warrenjr]_ and Paul Hsieh's
+website [sqrt-hsieh]_ for an in-depth discussion.
+
+.. [warrenjr]_ TBC
+
+.. [sqrt-hsieh]_ TBC

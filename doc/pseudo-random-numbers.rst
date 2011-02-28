@@ -32,3 +32,5 @@ PDF *P(x) = 2^(-B)-2^(-2B)|x-2^B+1|*::
 
 This value can, for example, be used to initialise the accumulator prior to
 performing a series of multiply accumulate operations.
+
+.. [xmosrandom] TBC
