@@ -1,16 +1,16 @@
-XMOS Ethernet Component
-=======================
+Tips and Tricks
+===============
 
 .. toctree::
 
-    clearing-registers
-    div-mod
-    extra-registers
-    generating-bit-streams
+    realign-streams
     hash-tables
     parsing-bit-streams
+    generating-bit-streams
     pseudo-random-numbers
-    realign-streams
-    short-fifo
     sqrt-log
+    clearing-registers
+    extra-registers
+    short-fifo
+    div-mod
     threading-speedup
