@@ -1,0 +1,164 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Hash tables &mdash; Tips and tricks v0v1 documentation</title>
+    <link rel="stylesheet" href="_static/xdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0v1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Tips and tricks v0v1 documentation" href="index.html" />
+    <link rel="next" title="Parsing bit streams" href="parsing-bit-streams.html" />
+    <link rel="prev" title="Generating bit streams" href="generating-bit-streams.html" /> 
+
+<script>
+function setheight() {
+h1 = document.getElementById('d1').style.height;
+h2 = document.getElementById('d2').style.height;
+
+if (parseInt(h1) > parseInt(h2)) {
+document.getElementById('d2').style.height=h1 + "px";
+}
+else {
+document.getElementById('d1').style.height=h2 + "px";
+}
+
+}
+</script>
+</head>
+
+<body onload="setheight();">
+
+  
+
+    <div class="document" id='d1'>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+<div style="float: right">
+<a href="generating-bit-streams.html"
+                        title="previous chapter"> &lt&lt </a>
+<a href="parsing-bit-streams.html"
+                        title="next chapter"> &gt&gt </a></p>
+</div>
+
+            
+  <div class="section" id="hash-tables">
+<h1>Hash tables<a class="headerlink" href="#hash-tables" title="Permalink to this headline">¶</a></h1>
+<p>A hash table is a well understood data structure to store data. Typically,
+a hash table stores pairs <em>(key,value)</em>, and the objective is to use little
+memory to store those but with a fast access mechanism. Hash tables are
+described in detail by Knuth <a class="reference internal" href="#knuth3">[knuth3]</a>.</p>
+<p>A good hash function is critical to making efficient hash tables. Good hash
+functions can be expensive to compute, but functions that are cheap to
+compute may have poor hashing qualities.</p>
+<p>The XS1 instruction set offers a CRC instruction that can compute a reasonable
+hash in a single clock cycle. The CRC instruction computes the modulo when
+dividing by a binary polynomial. This is known to have good hashing
+properties if the right polynomial is chosen.</p>
+<p>The way to use the CRC instruction is as follows (assuming that there is an
+array of words x[] over which we want to create a hash):</p>
+<div class="highlight-none"><div class="highlight"><pre>hash = ~0;
+for(int i = 0; i &lt; n; i++) {
+  crc32(hash, x[i], polynomial);
+}
+</pre></div>
+</div>
+<p>For the special case where the key is only one word, this for-loop reverts
+to one thread cycle to initialise the variable <tt class="docutils literal"><span class="pre">hash</span></tt>, and call
+to <tt class="docutils literal"><span class="pre">crc32()</span></tt> which is also executed in a single thread cycle.</p>
+<p>The polynomial should be chosen as follows:</p>
+<ul>
+<li><dl class="first docutils">
+<dt>The length of the polynomial determines the size of the hashtable</dt>
+<dd><p class="first last">addressed. For a polynomial of length <em>n</em>, the hash table will have
+<em>2^n</em> entries. A polynomial of length <em>n</em> will have <em>32-n</em> zero bits as
+its most significant bits, then a <em>1</em> bit, and then zero and 1 bits.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>The polynomial should have good spreading properties. We refer to</dt>
+<dd><p class="first last">Knuth for details <a class="reference internal" href="#knuth3">[knuth3]</a>. As a rule of thumb, primitive
+polynomials <a class="reference internal" href="#wikipedia-primitive-polynomial">[wikipedia-primitive-polynomial]</a> are good.</p>
+</dd>
+</dl>
+</li>
+</ul>
+<p>If all values that are to be stored are known at compile time, then the
+polynomial can be chosen to minimise the hashtable by performing an
+exhaustive search over all possible polynomials.</p>
+<table class="docutils citation" frame="void" id="knuth3" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label">[knuth3]</td><td><em>(<a class="fn-backref" href="#id1">1</a>, <a class="fn-backref" href="#id2">2</a>)</em> Donald Knuth, <em>The Art of Computer Programming: Sorting and Searching</em>, ISBN 0201896850.</td></tr>
+</tbody>
+</table>
+<table class="docutils citation" frame="void" id="wikipedia-primitive-polynomial" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id3">[wikipedia-primitive-polynomial]</a></td><td><em>Primitive Polynomial pages on Wikipedia</em> <a class="reference external" href="http://en.wikipedia.org/wiki/Primitive_polynomial">http://en.wikipedia.org/wiki/Primitive_polynomial</a></td></tr>
+</tbody>
+</table>
+</div>
+
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" id='d2'>
+        <div class="sphinxsidebarwrapper">
+<h3><a href="index.html">Table Of Contents</a></h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="clearing-registers.html">Clearing two registers simultaneously</a></li>
+<li class="toctree-l1"><a class="reference internal" href="div-mod.html">Division and modulo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="extra-registers.html">Using extra registers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="generating-bit-streams.html">Generating bit streams</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">Hash tables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="parsing-bit-streams.html">Parsing bit streams</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pseudo-random-numbers.html">Pseudo Random Numbers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="realign-streams.html">Realigning a data stream</a></li>
+<li class="toctree-l1"><a class="reference internal" href="short-fifo.html">Building short FIFOs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sqrt-log.html">Computing a logarithm or sqrt</a></li>
+<li class="toctree-l1"><a class="reference internal" href="threading-speedup.html">Using multiple threads for super linear speedup</a></li>
+</ul>
+
+<div id="searchbox" style="display: none">
+  <h3>Search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+
+
+
+    <div class="footer">
+    </div>
+  </body>
+</html>
+
+
+

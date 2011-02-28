@@ -1,0 +1,335 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Using multiple threads for super linear speedup &mdash; Tips and tricks v0v1 documentation</title>
+    <link rel="stylesheet" href="_static/xdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0v1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Tips and tricks v0v1 documentation" href="index.html" />
+    <link rel="prev" title="Computing a logarithm or sqrt" href="sqrt-log.html" /> 
+
+<script>
+function setheight() {
+h1 = document.getElementById('d1').style.height;
+h2 = document.getElementById('d2').style.height;
+
+if (parseInt(h1) > parseInt(h2)) {
+document.getElementById('d2').style.height=h1 + "px";
+}
+else {
+document.getElementById('d1').style.height=h2 + "px";
+}
+
+}
+</script>
+</head>
+
+<body onload="setheight();">
+
+  
+
+    <div class="document" id='d1'>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+<div style="float: right">
+<a href="sqrt-log.html"
+                        title="previous chapter"> &lt&lt </a>
+</div>
+
+            
+  <div class="section" id="using-multiple-threads-for-super-linear-speedup">
+<h1>Using multiple threads for super linear speedup<a class="headerlink" href="#using-multiple-threads-for-super-linear-speedup" title="Permalink to this headline">¶</a></h1>
+<p>In programs there are often two functions calling each other where the
+calling function is producing data, and the called function is storing the data.
+By using two threads you can more than double the speed of the
+code. This is due to each thread having access to a set of registers to
+hold data, and because two threads eliminate the overhead caused by function calls.</p>
+<div class="section" id="code-structure">
+<h2>Code structure<a class="headerlink" href="#code-structure" title="Permalink to this headline">¶</a></h2>
+<p>As an example, we use JPEG encoding where discretised DCT parameters are
+stored as a string of bits, and runs of &#8216;0&#8217; values are run length encoded.
+The two functions are doing the encoding and the bit shuffling/storing. The
+code is based on source code from lstinline$libjpeg$ by Thomas G Lane et al.</p>
+<p>The program comprises two functions, <tt class="docutils literal"><span class="pre">encode</span></tt> and
+<tt class="docutils literal"><span class="pre">emit_bits</span></tt>, <tt class="docutils literal"><span class="pre">encode</span></tt> makes repeated calls to
+<tt class="docutils literal"><span class="pre">emit_bits</span></tt>. The trick is that the latter function requires some
+persistent state. This state can be stored in one of three places:</p>
+<ul>
+<li><dl class="first docutils">
+<dt>It can be stored in a structure that is passed to</dt>
+<dd><p class="first last"><tt class="docutils literal"><span class="pre">emit_bits</span></tt> on every call (an object oriented way of programming)</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>It can be stored in a structure that is a persistent variable inside</dt>
+<dd><p class="first last"><tt class="docutils literal"><span class="pre">emit_bits</span></tt>  (traditional procedural programming style)</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>It can be stored in a thread that runs <tt class="docutils literal"><span class="pre">emit_bits</span></tt></dt>
+<dd><p class="first last">(a concurrent programming style)</p>
+</dd>
+</dl>
+</li>
+</ul>
+<p>The three programs are shown at the end</p>
+</div>
+<div class="section" id="timings">
+<h2>Timings<a class="headerlink" href="#timings" title="Permalink to this headline">¶</a></h2>
+<p>The execution times are as follows (measured on a 400 Mhz XCore, compiled
+with -O2 and array bound checks switched off):</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="33%" />
+<col width="43%" />
+<col width="25%" />
+</colgroup>
+<thead valign="bottom">
+<tr><th class="head">Version</th>
+<th class="head">Programming style</th>
+<th class="head">Time in us</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr><td><tt class="docutils literal"><span class="pre">encode_oo</span></tt></td>
+<td>Object Oriented</td>
+<td>51.21</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">encode_p</span></tt></td>
+<td>Procedural style</td>
+<td>51.12</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">encode_c</span></tt></td>
+<td>Concurrent style</td>
+<td>16.08</td>
+</tr>
+</tbody>
+</table>
+<p>Note that the concurrent version runs more than three times faster, using only
+two threads. The extra factor 1.5 speed-up is due to two factors:</p>
+<p>1. Foremost, the program has access to twice the number of register
+variables. This means that all variables are kept in registers. In
+particular, the state used by <tt class="docutils literal"><span class="pre">emit_bits</span></tt> is kept in registers.</p>
+<p>2. Second, Function calls are avoided, avoiding the need to save registers, and
+create parameter lists. This can be resolved by inlining functions, but
+in addition to a code bloat <tt class="docutils literal"><span class="pre">emit_bits</span></tt> is called three
+times), it also leads to registers being spilled to the stack.</p>
+</div>
+<div class="section" id="code-listings-for-threads">
+<h2>Code listings for threads<a class="headerlink" href="#code-listings-for-threads" title="Permalink to this headline">¶</a></h2>
+<p>All three code segments assume the following global definitions:</p>
+<div class="highlight-none"><div class="highlight"><pre>struct pers {
+    int current;
+    int length;
+    int ncodes;
+    int codes[512];
+};
+
+int ehufco[256], ehufsi[256];
+</pre></div>
+</div>
+<p>The program written in an object-oriented, procedural, and concurrent style are listed
+on the subsequent three pages. The last page shows the main program:</p>
+<div class="highlight-none"><div class="highlight"><pre>void emit_bits_oo(struct pers &amp;state,int code,int length) {
+   state.length += length;
+   if (state.length &gt; 32) {
+       int t;
+       state.length -= 32;
+       t = state.current &lt;&lt; (length - state.length);
+       t |= code &gt;&gt; state.length;
+       state.codes[state.ncodes] = t;
+       state.ncodes++;
+       state.current = code;
+   } else {
+       state.current &lt;&lt;= length;
+       state.current |= code;
+   }
+}
+void encode_oo(int block[64]) {
+   int temp, i, k, temp2, nbits;
+   int r = 0;
+   struct pers state; state.ncodes = state.length = 0;
+   for (k = 0; k &lt; 64; k++) {
+       if ((temp = block[k]) == 0) {
+           r++;
+       } else {
+           while (r &gt; 15) {
+               emit_bits_oo(state,ehufco[0xF0],ehufsi[0xF0]);
+               r -= 16;
+           }
+           temp2 = temp;
+           if (temp &lt; 0) {
+               temp = -temp;
+               temp2--;
+           }
+           nbits = 32-clz(temp);
+           i = (r &lt;&lt; 4) + nbits;
+           emit_bits_oo(state, ehufco[i], ehufsi[i]);
+           emit_bits_oo(state, (unsigned int) temp2, nbits);
+           r = 0;
+       }
+   }
+}
+
+
+void emit_bits_p(int code, int length) {
+   static struct pers state;
+   state.length += length;
+   if (state.length &gt; 32) {
+       int t;
+       state.length -= 32;
+       t = state.current &lt;&lt; (length - state.length);
+       t |= code &gt;&gt; state.length;
+       state.codes[state.ncodes] = t;
+       state.ncodes++;
+       state.current = code;
+   } else {
+       state.current &lt;&lt;= length;
+       state.current |= code;
+   }
+}
+void encode_p(int block[64]) {
+   int temp, i, k, temp2, nbits;
+   int r = 0;
+
+   for (k = 0; k &lt; 64; k++) {
+       if ((temp = block[k]) == 0) {
+           r++;
+       } else {
+           while (r &gt; 15) {
+               emit_bits_p(ehufco[0xF0], ehufsi[0xF0]);
+               r -= 16;
+           }
+           temp2 = temp;
+           if (temp &lt; 0) {
+               temp = -temp;
+               temp2--;
+           }
+           nbits = 32-clz(temp);
+           i = (r &lt;&lt; 4) + nbits;
+           emit_bits_p(ehufco[i], ehufsi[i]);
+           emit_bits_p((unsigned int) temp2, nbits);
+           r = 0;
+       }
+   }
+}
+void emit_bits_c(streaming chanend inp) {
+ int code, length, state_current;
+ int state_length = 0, state_ncodes = 0, state_codes[512];
+ while(1) {
+   inp :&gt; code;   inp :&gt; length;
+   state_length += length;
+   if (state_length &gt; 32) {
+       int t;
+       state_length -= 32;
+       t = state_current &lt;&lt; (length - state_length);
+       t |= code &gt;&gt; state_length;
+       state_codes[state_ncodes] = t;
+       state_ncodes++;
+       state_current = code;
+   } else {
+       state_current &lt;&lt;= length;
+       state_current |= code;
+   }
+ }
+}
+void encode_c(streaming chanend outp, int block[64]) {
+   int temp, i, k, temp2, nbits;
+   int r = 0;
+
+   for (k = 0; k &lt; 64; k++) {
+       if ((temp = block[k]) == 0) {
+           r++;
+       } else {
+           while (r &gt; 15) {
+               outp &lt;: ehufco[0xF0]; outp &lt;: ehufsi[0xF0];
+               r -= 16;
+           }
+           temp2 = temp;
+           if (temp &lt; 0) {
+               temp = -temp;
+               temp2--;
+           }
+           nbits = 32-clz(temp);
+           i = (r &lt;&lt; 4) + nbits;
+           outp &lt;: ehufco[i]; outp &lt;: ehufsi[i];
+           outp &lt;: (unsigned int) temp2; outp &lt;: nbits;
+           r = 0;
+       }
+   }
+}
+</pre></div>
+</div>
+</div>
+</div>
+
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" id='d2'>
+        <div class="sphinxsidebarwrapper">
+<h3><a href="index.html">Table Of Contents</a></h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="clearing-registers.html">Clearing two registers simultaneously</a></li>
+<li class="toctree-l1"><a class="reference internal" href="div-mod.html">Division and modulo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="extra-registers.html">Using extra registers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="generating-bit-streams.html">Generating bit streams</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hash-tables.html">Hash tables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="parsing-bit-streams.html">Parsing bit streams</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pseudo-random-numbers.html">Pseudo Random Numbers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="realign-streams.html">Realigning a data stream</a></li>
+<li class="toctree-l1"><a class="reference internal" href="short-fifo.html">Building short FIFOs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sqrt-log.html">Computing a logarithm or sqrt</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">Using multiple threads for super linear speedup</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#code-structure">Code structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#timings">Timings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#code-listings-for-threads">Code listings for threads</a></li>
+</ul>
+</li>
+</ul>
+
+<div id="searchbox" style="display: none">
+  <h3>Search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+
+
+
+    <div class="footer">
+    </div>
+  </body>
+</html>
+
+
+

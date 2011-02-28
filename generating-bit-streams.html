@@ -1,0 +1,205 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Generating bit streams &mdash; Tips and tricks v0v1 documentation</title>
+    <link rel="stylesheet" href="_static/xdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0v1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Tips and tricks v0v1 documentation" href="index.html" />
+    <link rel="next" title="Hash tables" href="hash-tables.html" />
+    <link rel="prev" title="Using extra registers" href="extra-registers.html" /> 
+
+<script>
+function setheight() {
+h1 = document.getElementById('d1').style.height;
+h2 = document.getElementById('d2').style.height;
+
+if (parseInt(h1) > parseInt(h2)) {
+document.getElementById('d2').style.height=h1 + "px";
+}
+else {
+document.getElementById('d1').style.height=h2 + "px";
+}
+
+}
+</script>
+</head>
+
+<body onload="setheight();">
+
+  
+
+    <div class="document" id='d1'>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+<div style="float: right">
+<a href="extra-registers.html"
+                        title="previous chapter"> &lt&lt </a>
+<a href="hash-tables.html"
+                        title="next chapter"> &gt&gt </a></p>
+</div>
+
+            
+  <div class="section" id="generating-bit-streams">
+<h1>Generating bit streams<a class="headerlink" href="#generating-bit-streams" title="Permalink to this headline">¶</a></h1>
+<p>The simplest method to generate a bit stream is to use a port, and to
+output successive values to that port. Eg:</p>
+<div class="highlight-none"><div class="highlight"><pre>p &lt;: 0;
+p &lt;: 1;
+p &lt;: 0;
+p &lt;: 1;
+p &lt;: 1;
+</pre></div>
+</div>
+<p>This code will generate a sequence <tt class="docutils literal"><span class="pre">01011</span></tt> on port <tt class="docutils literal"><span class="pre">p</span></tt>. If the
+bits have to be outputted at a precise time, then the real time clock or a
+clocked port can be used to achieve this.</p>
+<p>An efficient method to output multiple synchronised output streams is to
+make sure that all ports are clocked synchronously, by buffering ports, and
+by ensuring that all buffers are always kept full. All these methods are
+detailed in the XC programming manual <a class="reference internal" href="realign-streams.html#xc-en-ebook">[xc-en-ebook]</a></p>
+<p>Alternatively, ports can be clocked of one another. That is, one output
+port is clocked of a divided reference clock, and this port is then used as
+a clock for one or more other ports. As an example we show part of a
+JTAG implementation.</p>
+<p>There are four ports, and two clocks in this example. The four ports drive the
+TCK, TDI, and TMS signals, and sample the TDO signal. One of the clocks is
+used to clock the TCK pin, the other clock is used to clock the TMS, TDI,
+and TDO pins:</p>
+<div class="highlight-none"><div class="highlight"><pre>buffered out port:32 jtag_pin_TCK  = XS1_PORT_1D;
+buffered out port:32 jtag_pin_TDI  = XS1_PORT_1A;
+buffered in port:32 jtag_pin_TDO  = XS1_PORT_1B;
+buffered out port:4 jtag_pin_TMS  = XS1_PORT_1C;
+
+clock tck_clk = XS1_CLKBLK_1;
+clock jtag_clk = XS1_CLKBLK_2;
+</pre></div>
+</div>
+<p>The initialisation function sets up the clock-blocks, ports, and clock
+sources as follows:</p>
+<div class="highlight-none"><div class="highlight"><pre>init() {
+  configure_clock_rate(tck_clk, 100, 10);
+  configure_out_port(jtag_pin_TCK, tck_clk, 0xffffffff);
+
+  configure_clock_src(jtag_clk, jtag_pin_TCK);
+  configure_out_port(jtag_pin_TDI, jtag_clk, 0);
+  configure_in_port(jtag_pin_TDO, jtag_clk);
+  configure_out_port(jtag_pin_TMS, jtag_clk, 0);
+  start_clock(tck_clk);
+  start_clock(jtag_clk);
+}
+</pre></div>
+</div>
+<p><tt class="docutils literal"><span class="pre">tck_clk</span></tt> is set to tick at 10 Mhz, the TCK pin is set to be
+clocked of that 10 Mhz clock and initialised to all ones (a high value),
+the <tt class="docutils literal"><span class="pre">jtag_clk</span></tt> is set to be clocked of the TCK pin, and the other
+three ports are clocked of the <tt class="docutils literal"><span class="pre">jtag_clk</span></tt>, initialising the
+output pins with 0. The clocks are then started.</p>
+<p>After all the setup, data can now be input and output to the TDO, TDI, and
+TMS pins. The trick is to always first place the data on the output port,
+and then generate a train of clock pulses on TCK. Note that the program will
+continue while the clock pulses are being generated, so there are places
+where the program has to wait for all clock pulses being generated.</p>
+<p>Initially, the protocol requires us to assert TMS for one clock tick, and
+then keep it low for two clock ticks. That is achieved by the following
+sequence:</p>
+<div class="highlight-none"><div class="highlight"><pre>jtag_pin_TMS &lt;: 0b0001;
+jtag_pin_TCK:6 &lt;: 0b101010;      // 3 Clock pulses
+sync(jtag_pin_TCK);
+</pre></div>
+</div>
+<p>The data <tt class="docutils literal"><span class="pre">0001</span></tt> is placed int he TMS port, and because
+<tt class="docutils literal"><span class="pre">jtag_pin_TCK</span></tt> is initially high, one TMS bit will be clocked out
+on every zero bit of TCK. Three bits will be clocked out in total. The call to
+$sync$ causes the program to pause until all 6 bits have been
+shifted out on TCK, and three bits to have been shifted out of TMS as a result.</p>
+<p>Second, the protocol requires us to place data on TDI, clock this data out,
+and input data on TDO:</p>
+<div class="highlight-none"><div class="highlight"><pre>jtag_pin_TDI &lt;: in0;
+clearbuf(jtag_pin_TDO);
+jtag_pin_TCK &lt;: 0xAAAAAAAA;  // 16 Clock pulses
+jtag_pin_TCK &lt;: 0xAAAAAAAA;  // 16 Clock pulses
+jtag_pin_TDO :&gt; out1;
+</pre></div>
+</div>
+<p>The first line places 32 bits of data from the variable <tt class="docutils literal"><span class="pre">in0</span></tt>
+into the TDI port; preparing it for transmission. The second line empties
+the input buffers of the TDO port, throwing away any data that was clocked
+in previously. The third and fourth line generate a total of 32 clock
+pulses on the TCK, clocking out all data on TDI, and clocking in 32 bits on
+TDO. The last line inputs the data from TDO into the variable
+<tt class="docutils literal"><span class="pre">out0</span></tt>. This statement will block until all 32 bits are present,
+and will hence wait for all clocks to be generated.</p>
+<p>Using this method also gives flexibility to, for example, generate clocks
+that are non symmetrical.</p>
+<table class="docutils citation" frame="void" id="xc-en-ebook" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id1">[xc-en-ebook]</a></td><td>Douglas Watt, <em>Programming XC on XMOS Devices</em>, <a class="reference external" href="http://www.xmos.com/published/xc_en">http://www.xmos.com/published/xc_en</a></td></tr>
+</tbody>
+</table>
+</div>
+
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" id='d2'>
+        <div class="sphinxsidebarwrapper">
+<h3><a href="index.html">Table Of Contents</a></h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="clearing-registers.html">Clearing two registers simultaneously</a></li>
+<li class="toctree-l1"><a class="reference internal" href="div-mod.html">Division and modulo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="extra-registers.html">Using extra registers</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">Generating bit streams</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hash-tables.html">Hash tables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="parsing-bit-streams.html">Parsing bit streams</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pseudo-random-numbers.html">Pseudo Random Numbers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="realign-streams.html">Realigning a data stream</a></li>
+<li class="toctree-l1"><a class="reference internal" href="short-fifo.html">Building short FIFOs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sqrt-log.html">Computing a logarithm or sqrt</a></li>
+<li class="toctree-l1"><a class="reference internal" href="threading-speedup.html">Using multiple threads for super linear speedup</a></li>
+</ul>
+
+<div id="searchbox" style="display: none">
+  <h3>Search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+
+
+
+    <div class="footer">
+    </div>
+  </body>
+</html>
+
+
+

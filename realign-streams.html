@@ -1,0 +1,222 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Realigning a data stream &mdash; Tips and tricks v0v1 documentation</title>
+    <link rel="stylesheet" href="_static/xdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0v1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Tips and tricks v0v1 documentation" href="index.html" />
+    <link rel="next" title="Building short FIFOs" href="short-fifo.html" />
+    <link rel="prev" title="Pseudo Random Numbers" href="pseudo-random-numbers.html" /> 
+
+<script>
+function setheight() {
+h1 = document.getElementById('d1').style.height;
+h2 = document.getElementById('d2').style.height;
+
+if (parseInt(h1) > parseInt(h2)) {
+document.getElementById('d2').style.height=h1 + "px";
+}
+else {
+document.getElementById('d1').style.height=h2 + "px";
+}
+
+}
+</script>
+</head>
+
+<body onload="setheight();">
+
+  
+
+    <div class="document" id='d1'>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+<div style="float: right">
+<a href="pseudo-random-numbers.html"
+                        title="previous chapter"> &lt&lt </a>
+<a href="short-fifo.html"
+                        title="next chapter"> &gt&gt </a></p>
+</div>
+
+            
+  <div class="section" id="realigning-a-data-stream">
+<h1>Realigning a data stream<a class="headerlink" href="#realigning-a-data-stream" title="Permalink to this headline">¶</a></h1>
+<p>In some applications one would like to write a stream of data into memory, but the
+destination location is not word aligned in memory. For example, a program
+may be reading words from a
+32-bit buffered port, and attempting to store these words in a packet
+buffer that starts at address 0x13001.</p>
+<div class="section" id="using-maccu-instructions">
+<h2>Using MACCU instructions<a class="headerlink" href="#using-maccu-instructions" title="Permalink to this headline">¶</a></h2>
+<p>Rather than resorting to short or byte stores, the MACCU instruction can be
+used to realign the data in a single clock cycle. The MACCU instruction
+computes:</p>
+<div class="highlight-none"><div class="highlight"><pre>h:l &lt;- h:l + x * y
+</pre></div>
+</div>
+<p>In other words:</p>
+<div class="highlight-none"><div class="highlight"><pre>h &lt;- h + (l + x * y) / 2^32
+l &lt;- (l + x 8 y) mod 2^32
+</pre></div>
+</div>
+<p>We will use <em>y</em> as a constant that denotes over how many bytes the data
+should be realigned. Assuming that we want to shift by <em>n</em> bytes, where <em>n</em>
+is 0, 1, 2, or 3, we set <em>y</em> to 0x1, 0x100, 0x10000, or 0x1000000.
+<em>x</em> is the word that is input, which contains the most
+recently received byte (that should go at the highest location in memory)
+in it most significant location, and the oldest data in its least significant
+location.</p>
+<p>Multiplying <em>x</em> by <em>y</em> into a 64 bit value will split the word into two
+words: the least significant 32 bits of the answer contain the the <em>4-n</em>
+oldest bytes of data: all 4 bytes for <em>n</em> equals 0, 3 bytes for <em>n</em> equals
+1, and so on. The highest 32 bits of the answer contain the <em>n</em> more recent
+bytes. The trick is to keep those bytes for the next store, and add those in
+with the <em>4-n</em> bytes of the next iteration. Conveniently, the MACCU
+instruction performs that addition.</p>
+<p>In other words, we perform the following operations in a loop:</p>
+<div class="highlight-none"><div class="highlight"><pre>x &lt;- input
+h &lt;- 0
+l &lt;- l + (x * y) mod 2^32
+h &lt;- h + (x * y) / 2^32
+mem[] &lt;- l
+l &lt;- h
+</pre></div>
+</div>
+<p>The last operation can be removed by unrolling the loop once and renaming
+the registers. An XC program that reads words from an input channel/port
+and outputs realigned words to an output channel/port is shown below:</p>
+<div class="highlight-none"><div class="highlight"><pre>unsigned y = 0x100;
+unsigned h, l = 0, x;
+while(...) {
+   h = 0;
+   i :&gt; x;
+   {h,l} = macu(h,l,x,y);
+   o &lt;: l;
+   l = 0;
+   i :&gt; x;
+   {l,h} = macu(l,h,x,y);
+   o &lt;: h;
+}
+</pre></div>
+</div>
+<p>Which realigns a byte stream by one byte. The variable $y$ can be set to
+any other value with a single &#8216;1&#8217; bit to achieve different realignments.</p>
+<p>Conversely, a MACCU instruction can also be used to pack 24 bit values into 32 bit
+values - four MACCU instructions with values 1, 0x1000000, 0x1000, and 0x100
+in succession will pack 4 24-bit values into 3 32-bit values.</p>
+</div>
+<div class="section" id="realignment-using-a-channel">
+<h2>Realignment using a channel<a class="headerlink" href="#realignment-using-a-channel" title="Permalink to this headline">¶</a></h2>
+<p>A channel can also be used to realign data. Data can be output to a channel
+in words, and input in words. If, on purpose, a single token is output
+prior to a series of word outputs, then each input will input one token
+from the last word, and three tokens from the current word.</p>
+<p>Since words are transmitted most significant byte first, the byte-reverse
+function should be called prior to outputting a word, and after inputting
+the word. As an example, the following two functions will realign the data
+by one byte:</p>
+<div class="highlight-none"><div class="highlight"><pre>#include &lt;xclib.h&gt;
+
+void sender(streaming chanend x, int a[100]) {
+   char c = 0;
+   x &lt;: c;
+   for(int i = 0; i &lt; 100; i++) {
+       x &lt;: byterev(a[i]);
+   }
+}
+
+void receiver(streaming chanend x, int a[100]) {
+   for(int i = 0; i &lt; 100; i++) {
+       x :&gt; byterev(a[i]);
+   }
+   x :&gt; char _;
+}
+</pre></div>
+</div>
+<p>This method is particularly useful on the edge of two processes, where
+data would be communicated to another thread anyway. For example, a data
+packet may have been received over ethernet and is transmitted to a second
+thread for processing.</p>
+<table class="docutils citation" frame="void" id="warrenjr" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label">[warrenjr]</td><td>Henry S Warren, <em>Hacker&#8217;s Delight</em>, ISBN 0201914654</td></tr>
+</tbody>
+</table>
+<table class="docutils citation" frame="void" id="xc-en-ebook" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label">[xc-en-ebook]</td><td>Douglas Watt, <em>Programming XC on XMOS Devices</em>, <a class="reference external" href="http://www.xmos.com/published/xc_en">http://www.xmos.com/published/xc_en</a></td></tr>
+</tbody>
+</table>
+</div>
+</div>
+
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" id='d2'>
+        <div class="sphinxsidebarwrapper">
+<h3><a href="index.html">Table Of Contents</a></h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="clearing-registers.html">Clearing two registers simultaneously</a></li>
+<li class="toctree-l1"><a class="reference internal" href="div-mod.html">Division and modulo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="extra-registers.html">Using extra registers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="generating-bit-streams.html">Generating bit streams</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hash-tables.html">Hash tables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="parsing-bit-streams.html">Parsing bit streams</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pseudo-random-numbers.html">Pseudo Random Numbers</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">Realigning a data stream</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#using-maccu-instructions">Using MACCU instructions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#realignment-using-a-channel">Realignment using a channel</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="short-fifo.html">Building short FIFOs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sqrt-log.html">Computing a logarithm or sqrt</a></li>
+<li class="toctree-l1"><a class="reference internal" href="threading-speedup.html">Using multiple threads for super linear speedup</a></li>
+</ul>
+
+<div id="searchbox" style="display: none">
+  <h3>Search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+
+
+
+    <div class="footer">
+    </div>
+  </body>
+</html>
+
+
+
