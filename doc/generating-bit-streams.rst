@@ -99,6 +99,4 @@ and will hence wait for all clocks to be generated.
 Using this method also gives flexibility to, for example, generate clocks
 that are non symmetrical.
 
-.. [xc-en-ebook]_ Douglas Watt, *Programming XC on XMOS Devices*, http://www.xmos.com/published/xc_en
-
-.. [warrenjr] Henry S Warren, *Hacker's Delight*, ISBN 0201914654
+.. [xc-en-ebook] Douglas Watt, *Programming XC on XMOS Devices*, http://www.xmos.com/published/xc_en
