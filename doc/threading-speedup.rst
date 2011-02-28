@@ -49,12 +49,12 @@ Note that the concurrent version runs more than three times faster, using only
 two threads. The extra factor 1.5 speed-up is due to two factors:
 
 1. Foremost, the program has access to twice the number of register
-  variables. This means that all variables are kept in registers. In
-  particular, the state used by ``emit_bits`` is kept in registers.
+variables. This means that all variables are kept in registers. In
+particular, the state used by ``emit_bits`` is kept in registers.
 
 2. Second, Function calls are avoided, avoiding the need to save registers, and
-  create parameter lists. This can be resolved by inlining functions, but
-  in addition to a code bloat ``emit_bits`` is called three
+create parameter lists. This can be resolved by inlining functions, but
+in addition to a code bloat ``emit_bits`` is called three
   times), it also leads to registers being spilled to the stack.
 
 
