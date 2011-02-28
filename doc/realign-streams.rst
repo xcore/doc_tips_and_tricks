@@ -12,16 +12,14 @@ Using MACCU instructions
 
 Rather than resorting to short or byte stores, the MACCU instruction can be
 used to realign the data in a single clock cycle. The MACCU instruction
-computes:
+computes::
 
-\begin{eqnarray}
-h:l &\leftarrow& h:l + x \times y
-\end{eqnarray}
-In other words:
-\begin{eqnarray}
-h &\leftarrow& h + (l + x \times y) \div 2^{32}\\
-l &\leftarrow& (l + x \times y) \bmod 2^{32} 
-\end{eqnarray}
+  h:l <- h:l + x * y
+
+In other words::
+
+  h <- h + (l + x * y) / 2^32
+  l <- (l + x 8 y) mod 2^32 
 
 We will use *y* as a constant that denotes over how many bytes the data
 should be realigned. Assuming that we want to shift by *n* bytes, where *n*
@@ -39,15 +37,15 @@ bytes. The trick is to keep those bytes for the next store, and add those in
 with the *4-n* bytes of the next iteration. Conveniently, the MACCU
 instruction performs that addition.
 
-In other words, we perform the following operations in a loop:
-\begin{eqnarray}
-x &\leftarrow& input\\
-h &\leftarrow& 0\\
-l &\leftarrow& l + (x \times y) \bmod 2^{32} \\
-h &\leftarrow& h + (x \times y) \div 2^{32}\\
-mem[] &\leftarrow& l\\
-l &\leftarrow& h
-\end{eqnarray}
+In other words, we perform the following operations in a loop::
+
+  x <- input
+  h <- 0
+  l <- l + (x * y) mod 2^32 
+  h <- h + (x * y) / 2^32
+  mem[] <- l
+  l <- h
+
 The last operation can be removed by unrolling the loop once and renaming
 the registers. An XC program that reads words from an input channel/port
 and outputs realigned words to an output channel/port is shown below::
