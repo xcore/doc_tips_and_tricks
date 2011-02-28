@@ -31,6 +31,7 @@ will produce an accurate square root::
 See Hacker's delight [warrenjr]_ and Paul Hsieh's
 website [sqrt-hsieh]_ for an in-depth discussion.
 
-.. [warrenjr]_ TBC
 
-.. [sqrt-hsieh]_ TBC
+.. [warrenjr] Henry S Warren, *Hacker's Delight*, ISBN 0201914654
+
+.. [sqrt-hsieh] Paul Hsieh, http://www.azillionmonkeys.com/qed/sqroot.html
