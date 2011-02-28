@@ -1,5 +1,5 @@
 Building short FIFOs
-===
+====================
 
 A channel can be used as a short fifo, to synchronise two, otherwise
 asynchronous, processes. To use it as a short fifo, output
