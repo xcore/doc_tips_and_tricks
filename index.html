@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>XMOS Ethernet Component &mdash; Tips and tricks v0v1 documentation</title>
+    <title>Tips and Tricks &mdash; Tips and tricks v0v1 documentation</title>
     <link rel="stylesheet" href="_static/xdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
@@ -22,7 +22,7 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="top" title="Tips and tricks v0v1 documentation" href="#" />
-    <link rel="next" title="Clearing two registers simultaneously" href="clearing-registers.html" /> 
+    <link rel="next" title="Realigning a data stream" href="realign-streams.html" /> 
 
 <script>
 function setheight() {
@@ -49,19 +49,20 @@ document.getElementById('d1').style.height=h2 + "px";
         <div class="bodywrapper">
           <div class="body">
 <div style="float: right">
-<a href="clearing-registers.html"
+<a href="realign-streams.html"
                         title="next chapter"> &gt&gt </a></p>
 </div>
 
             
-  <div class="section" id="xmos-ethernet-component">
-<h1>XMOS Ethernet Component<a class="headerlink" href="#xmos-ethernet-component" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="tips-and-tricks">
+<h1>Tips and Tricks<a class="headerlink" href="#tips-and-tricks" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="clearing-registers.html">Clearing two registers simultaneously</a></li>
-<li class="toctree-l1"><a class="reference internal" href="div-mod.html">Division and modulo</a></li>
-<li class="toctree-l1"><a class="reference internal" href="extra-registers.html">Using extra registers</a></li>
-<li class="toctree-l1"><a class="reference internal" href="generating-bit-streams.html">Generating bit streams</a></li>
+<li class="toctree-l1"><a class="reference internal" href="realign-streams.html">Realigning a data stream</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="realign-streams.html#using-maccu-instructions">Using MACCU instructions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="realign-streams.html#realignment-using-a-channel">Realignment using a channel</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="hash-tables.html">Hash tables</a></li>
 <li class="toctree-l1"><a class="reference internal" href="parsing-bit-streams.html">Parsing bit streams</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="parsing-bit-streams.html#encoding-the-state-in-code-space">Encoding the state in code space</a></li>
@@ -70,14 +71,13 @@ document.getElementById('d1').style.height=h2 + "px";
 <li class="toctree-l2"><a class="reference internal" href="parsing-bit-streams.html#finding-the-alignment-of-a-bit-stream">Finding the alignment of a bit stream</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="generating-bit-streams.html">Generating bit streams</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pseudo-random-numbers.html">Pseudo Random Numbers</a></li>
-<li class="toctree-l1"><a class="reference internal" href="realign-streams.html">Realigning a data stream</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="realign-streams.html#using-maccu-instructions">Using MACCU instructions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="realign-streams.html#realignment-using-a-channel">Realignment using a channel</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="short-fifo.html">Building short FIFOs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sqrt-log.html">Computing a logarithm or sqrt</a></li>
+<li class="toctree-l1"><a class="reference internal" href="clearing-registers.html">Clearing two registers simultaneously</a></li>
+<li class="toctree-l1"><a class="reference internal" href="extra-registers.html">Using extra registers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="short-fifo.html">Building short FIFOs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="div-mod.html">Division and modulo</a></li>
 <li class="toctree-l1"><a class="reference internal" href="threading-speedup.html">Using multiple threads for super linear speedup</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="threading-speedup.html#code-structure">Code structure</a></li>
 <li class="toctree-l2"><a class="reference internal" href="threading-speedup.html#timings">Timings</a></li>
@@ -97,16 +97,16 @@ document.getElementById('d1').style.height=h2 + "px";
         <div class="sphinxsidebarwrapper">
 <h3><a href="#">Table Of Contents</a></h3>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="clearing-registers.html">Clearing two registers simultaneously</a></li>
-<li class="toctree-l1"><a class="reference internal" href="div-mod.html">Division and modulo</a></li>
-<li class="toctree-l1"><a class="reference internal" href="extra-registers.html">Using extra registers</a></li>
-<li class="toctree-l1"><a class="reference internal" href="generating-bit-streams.html">Generating bit streams</a></li>
+<li class="toctree-l1"><a class="reference internal" href="realign-streams.html">Realigning a data stream</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hash-tables.html">Hash tables</a></li>
 <li class="toctree-l1"><a class="reference internal" href="parsing-bit-streams.html">Parsing bit streams</a></li>
+<li class="toctree-l1"><a class="reference internal" href="generating-bit-streams.html">Generating bit streams</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pseudo-random-numbers.html">Pseudo Random Numbers</a></li>
-<li class="toctree-l1"><a class="reference internal" href="realign-streams.html">Realigning a data stream</a></li>
-<li class="toctree-l1"><a class="reference internal" href="short-fifo.html">Building short FIFOs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sqrt-log.html">Computing a logarithm or sqrt</a></li>
+<li class="toctree-l1"><a class="reference internal" href="clearing-registers.html">Clearing two registers simultaneously</a></li>
+<li class="toctree-l1"><a class="reference internal" href="extra-registers.html">Using extra registers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="short-fifo.html">Building short FIFOs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="div-mod.html">Division and modulo</a></li>
 <li class="toctree-l1"><a class="reference internal" href="threading-speedup.html">Using multiple threads for super linear speedup</a></li>
 </ul>
 
