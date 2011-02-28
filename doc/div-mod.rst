@@ -26,4 +26,4 @@ Multiply by the inverse
 
 See Hacker's delight [warrenjr]_ for a detailed discussion on this subject
 
-.. [warrenjr] TBC
+.. [warrenjr] Henry S Warren, *Hacker's Delight*, ISBN 0201914654
