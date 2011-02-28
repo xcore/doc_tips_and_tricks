@@ -1,7 +1,8 @@
-\section{Pseudo Random Numbers}
+Pseudo Random Numbers
+=====================
 
-A separate app-note describes how to generate random numbers using the CRC
-instruction, and how to generate real random numbers~\cite{random}. In short, a
+An app-note describes how to generate random numbers using the CRC
+instruction, and how to generate real random numbers [xmosrandom]_. In short, a
 pseudo random sequence can be generated using the CRC instruction and a
 suitable polynomial.
 
@@ -11,23 +12,23 @@ number generator that generates random values with a Triangular
 Probability Density Function (TPDF), used in, for example, audio dithering. 
 
 Below is the code to generate those numbers. It generates a 32-bit pseudo random
-number, takes the bottom and top bits, sums those, and normalises it around
-0. It generates random numbers in the range $[1..2^{2B}-1]$, with a
-PDF $P(x) = 2^{-B}-2^{-2B}|x-2^{B}+1|$:
-\begin{lstlisting}
-#define POLYNOMIAL 0xEDB88320
-#define B 8
+number, takes the bottom and top bits, sums those, and normalises it
+around 0. It generates random numbers in the range *[1..2^(2B)-1]*, with a
+PDF *P(x) = 2^(-B)-2^(-2B)|x-2^B+1|*::
 
-unsigned int seed = 0xffffffff;
+  #define POLYNOMIAL 0xEDB88320
+  #define B 8
 
-int tpdf() {
-  int value1, value2;
+  unsigned int seed = 0xffffffff;
 
-  crc32(seed, ~0, POLYNOMIAL);
-  value1 = seed >> (32-B);
-  value2 = seed & ((1<<B)-1);
-  return value1 + value2 + 1;
-}
-\end{lstlisting}
+  int tpdf() {
+    int value1, value2;
+
+    crc32(seed, ~0, POLYNOMIAL);
+    value1 = seed >> (32-B);
+    value2 = seed & ((1<<B)-1);
+    return value1 + value2 + 1;
+  }
+
 This value can, for example, be used to initialise the accumulator prior to
 performing a series of multiply accumulate operations.
