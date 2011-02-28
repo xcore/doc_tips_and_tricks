@@ -37,13 +37,13 @@ Timings
 The execution times are as follows (measured on a 400 Mhz XCore, compiled
 with -O2 and array bound checks switched off):
 
-========= ================= ==========
-Version   Programming style Time in us 
-========= ================= ==========
-encode_oo Object Oriented   51.21 
-encode_p  Procedural style  51.12 
-encode_c  Concurrent style  16.08 
-========= ================= ==========
+============= ================= ==========
+Version       Programming style Time in us 
+============= ================= ==========
+``encode_oo`` Object Oriented   51.21 
+``encode_p``  Procedural style  51.12 
+``encode_c``  Concurrent style  16.08 
+============= ================= ==========
 
 Note that the concurrent version runs more than three times faster, using only
 two threads. The extra factor 1.5 speed-up is due to two factors:
@@ -55,7 +55,7 @@ particular, the state used by ``emit_bits`` is kept in registers.
 2. Second, Function calls are avoided, avoiding the need to save registers, and
 create parameter lists. This can be resolved by inlining functions, but
 in addition to a code bloat ``emit_bits`` is called three
-  times), it also leads to registers being spilled to the stack.
+times), it also leads to registers being spilled to the stack.
 
 
 Code listings for threads
