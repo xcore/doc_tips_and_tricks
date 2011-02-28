@@ -60,7 +60,7 @@ port, the least significant bit is the oldest bit, and the most significant
 bit input is the most recent bit. Hence, if on a 4-bit port the value
 ``0010`` (2) appears, then that means that the port clocked in a
 '0', a '1', a '0', and a '0'. In the state machine we reflect this by
-jumping to a state ``S0100``:
+jumping to a state ``S0100``::
 
  S:
     IN       r1, r0
