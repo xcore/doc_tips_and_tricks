@@ -1,7 +1,7 @@
 Clearing two registers simultaneously
 =====================================
 
-Two registers can be cleared simultaneously by executing an \lstinline+LSUB+
+Two registers can be cleared simultaneously by executing an ``LSUB``
 instruction::
 
     LSUB d, e, d, d, c
