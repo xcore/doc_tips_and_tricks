@@ -8,7 +8,7 @@ code. This is due to each thread having access to a set of registers to
 hold data, and because two threads eliminate the overhead caused by function calls.
 
 Code structure
----------
+--------------
 
 As an example, we use JPEG encoding where discretised DCT parameters are
 stored as a string of bits, and runs of '0' values are run length encoded.
@@ -36,12 +36,12 @@ Timings
 
 The execution times are as follows (measured on a 400 Mhz XCore, compiled
 with -O2 and array bound checks switched off):
-===== ===== =====
-Version Programming style Time in us 
-``encode_oo``  Object Oriented style  51.21 
+=======       ================= ==========
+Version       Programming style Time in us 
+``encode_oo`` Object Oriented   51.21 
 ``encode_p``  Procedural style  51.12 
 ``encode_c``  Concurrent style  16.08 
-=====  =====  =====
+=======       ================= ==========
 
 Note that the concurrent version runs more than three times faster, using only
 two threads. The extra factor 1.5 speed-up is due to two factors:
