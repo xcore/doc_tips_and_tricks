@@ -13,7 +13,7 @@ Code structure
 As an example, we use JPEG encoding where discretised DCT parameters are
 stored as a string of bits, and runs of '0' values are run length encoded.
 The two functions are doing the encoding and the bit shuffling/storing. The
-code is based on source code from \lstinline$libjpeg$ by Thomas G Lane et al.
+code is based on source code from ``libjpeg`` by Thomas G Lane et al.
 
 The program comprises two functions, ``encode`` and
 ``emit_bits``, ``encode`` makes repeated calls to

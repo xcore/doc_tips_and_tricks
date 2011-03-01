@@ -92,7 +92,7 @@ states are illegal and can be covered by a single ERROR state.
 
 Note that the BRU instruction jumps over *n* 16-bit instructions, and that all
 entries in the jumptable should hence be short instructions. Hence they
-have been specified as being \lstinline+BLRF_u10+ instructions.
+have been specified as being ``BLRF_u10`` instructions.
 
 Encoding the state transitions in a hash table
 ==============================================

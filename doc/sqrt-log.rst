@@ -3,11 +3,16 @@ Computing a logarithm or sqrt
 
 The XS1 has an instruction to count the number of leading zeroes of a bit
 pattern, ``clz()``. This function can be used to efficiently
-estimate the logarithm of a number. Assuming *x \not = 0*, then::
+estimate the logarithm of a number. Assuming :math:`x \not = 0`, then:
+
+.. math::
 
   floor(log2 x) = bpw - 1 - clz(x)
 
-This logarithm can be used as a first estimate for a square root, since::
+This logarithm can be used as a first estimate for a square root,
+since:
+
+.. math::
 
   sqrt(x) = x^0.5 = 2^(0.5*log2 x)
 
