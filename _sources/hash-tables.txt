@@ -30,12 +30,13 @@ to ``crc32()`` which is also executed in a single thread cycle.
 The polynomial should be chosen as follows:
 
 * The length of the polynomial determines the size of the hashtable
-    addressed. For a polynomial of length *n*, the hash table will have
-    *2^n* entries. A polynomial of length *n* will have *32-n* zero bits as
-    its most significant bits, then a *1* bit, and then zero and 1 bits.
+  addressed. For a polynomial of length *n*, the hash table will have
+  *2^n* entries. A polynomial of length *n* will have *32-n* zero bits as
+  its most significant bits, then a *1* bit, and then zero and 1 bits.
+
 * The polynomial should have good spreading properties. We refer to
-    Knuth for details [knuth3]_. As a rule of thumb, primitive
-    polynomials [wikipedia-primitive-polynomial]_ are good.
+  Knuth for details [knuth3]_. As a rule of thumb, primitive
+  polynomials [wikipedia-primitive-polynomial]_ are good.
 
 If all values that are to be stored are known at compile time, then the
 polynomial can be chosen to minimise the hashtable by performing an

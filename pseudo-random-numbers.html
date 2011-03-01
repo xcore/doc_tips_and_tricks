@@ -21,6 +21,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://mathjax.connectmv.com/MathJax.js"></script>
     <link rel="top" title="Tips and tricks v0v1 documentation" href="index.html" />
     <link rel="next" title="Computing a logarithm or sqrt" href="sqrt-log.html" />
     <link rel="prev" title="Generating bit streams" href="generating-bit-streams.html" /> 
@@ -69,9 +70,25 @@ number generator that generates random values with a Triangular
 Probability Density Function (TPDF), used in, for example, audio dithering.</p>
 <p>Below is the code to generate those numbers. It generates a 32-bit pseudo random
 number, takes the bottom and top bits, sums those, and normalises it
-around 0. It generates random numbers in the range <em>[1..2^(2B)-1]</em>, with a
-PDF <em>P(x) = 2^(-B)-2^(-2B)|x-2^B+1|</em>:</p>
-<p>This value can, for example, be used to initialise the accumulator prior to
+around 0. It generates random numbers in the range <span class="math">\([1..2^{2B}-1]\)</span>, with a
+PDF <span class="math">\(P(x) = 2^{-B}-2^{-2B}|x-2^B+1|\)</span>:</p>
+<div class="highlight-none"><div class="highlight"><pre>#define POLYNOMIAL 0xEDB88320
+#define B 8
+
+unsigned int seed = 0xffffffff;
+
+int tpdf() {
+  int value1, value2;
+
+  crc32(seed, ~0, POLYNOMIAL);
+  value1 = seed &gt;&gt; (32-B);
+  value2 = seed &amp; ((1&lt;&lt;B)-1);
+  return value1 + value2 + 1;
+}
+</pre></div>
+</div>
+<p>The value from this random number geneator can, for example,
+be used to initialise the accumulator prior to
 performing a series of multiply accumulate operations.</p>
 <table class="docutils citation" frame="void" id="xmosrandom" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
