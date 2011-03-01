@@ -7,18 +7,18 @@ estimate the logarithm of a number. Assuming :math:`x \not = 0`, then:
 
 .. math::
 
-  floor(log2 x) = bpw - 1 - clz(x)
+  \lfloor \log_2 x \rfloor = bpw - 1 - clz(x)
 
 This logarithm can be used as a first estimate for a square root,
 since:
 
 .. math::
 
-  sqrt(x) = x^0.5 = 2^(0.5*log2 x)
+  \sqrt{x} = x^{\frac{1}{2}} = 2^{\frac{\log_2 x}{2}}
 
 This is all implemented using shift operations::
 
-  sqrt(x) = 1 << ((31-clz(x))>>1);
+  sqrtx = 1 << ((31-clz(x))>>1);
 
 This estimate can be improved iteratively using the Newton-Raphson algorithm. Since the
 first bit is of the square root is already correct, only 3 or 4 iterations
@@ -34,7 +34,7 @@ will produce an accurate square root::
   }
 
 See Hacker's delight [warrenjr]_ and Paul Hsieh's
-website [sqrt-hsieh]_ for an in-depth discussion. and better methods.
+website [sqrt-hsieh]_ for an in-depth discussion and better methods.
 
 
 .. [warrenjr] Henry S Warren, *Hacker's Delight*, ISBN 0201914654

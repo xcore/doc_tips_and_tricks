@@ -13,8 +13,8 @@ Probability Density Function (TPDF), used in, for example, audio dithering.
 
 Below is the code to generate those numbers. It generates a 32-bit pseudo random
 number, takes the bottom and top bits, sums those, and normalises it
-around 0. It generates random numbers in the range *[1..2^(2B)-1]*, with a
-PDF *P(x) = 2^(-B)-2^(-2B)|x-2^B+1|*:
+around 0. It generates random numbers in the range :math:`[1..2^{2B}-1]`, with a
+PDF :math:`P(x) = 2^{-B}-2^{-2B}|x-2^B+1|`:
 
 .. literalinclude:: module_tips_and_tricks/src/triangular_noise.xc
 
