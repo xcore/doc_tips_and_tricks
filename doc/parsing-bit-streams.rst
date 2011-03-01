@@ -90,7 +90,7 @@ example, one may always expect at least three equal bits in a row, eg
 patterns such as ``00100'' are impossible. In this case many of the above
 states are illegal and can be covered by a single ERROR state.
 
-Note that the BRU instruction jumps over $n$ 16-bit instructions, and that all
+Note that the BRU instruction jumps over *n* 16-bit instructions, and that all
 entries in the jumptable should hence be short instructions. Hence they
 have been specified as being \lstinline+BLRF_u10+ instructions.
 
@@ -136,8 +136,8 @@ Parsing an aligned bit stream by sampling
 
 If a bit stream has a known frequency relative to the XCore (give or take a
 few percent), then the stream can be parsed by oversampling the data on a
-port by a factor $n$, waiting for the start-bit, parse the *n/2* th bit, and
-then every $n$th bit until the end of the packet.
+port by a factor *n*, waiting for the start-bit, parse the *n/2* th bit, and
+then every *n* th bit until the end of the packet.
 
 For example, suppose that we expect a stream of bits at 12.288 Mhz, then we
 can oversample at 100 Mhz (oversampled by a factor 8.13). Wait for the
