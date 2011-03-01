@@ -34,7 +34,7 @@ will produce an accurate square root::
   }
 
 See Hacker's delight [warrenjr]_ and Paul Hsieh's
-website [sqrt-hsieh]_ for an in-depth discussion.
+website [sqrt-hsieh]_ for an in-depth discussion and better methods.
 
 
 .. [warrenjr] Henry S Warren, *Hacker's Delight*, ISBN 0201914654

@@ -63,7 +63,7 @@ and outputs realigned words to an output channel/port is shown below::
     o <: h;
  }
 
-Which realigns a byte stream by one byte. The variable ``y`` can be set to
+Which realigns a byte stream by one byte. The variable *y* can be set to
 any other value with a single '1' bit to achieve different realignments.
 
 Conversely, a MACCU instruction can also be used to pack 24 bit values into 32 bit
