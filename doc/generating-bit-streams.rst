@@ -75,7 +75,7 @@ sequence::
 The data ``0001`` is placed int he TMS port, and because
 ``jtag_pin_TCK`` is initially high, one TMS bit will be clocked out
 on every zero bit of TCK. Three bits will be clocked out in total. The call to
-$sync$ causes the program to pause until all 6 bits have been
+``sync`` causes the program to pause until all 6 bits have been
 shifted out on TCK, and three bits to have been shifted out of TMS as a result.
 
 Second, the protocol requires us to place data on TDI, clock this data out,
