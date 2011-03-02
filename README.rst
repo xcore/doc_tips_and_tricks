@@ -14,6 +14,7 @@ This document presents a number of programming techniques for the XMOS
 XCore XS1 architecture. Some of these methods put instructions specific to
 the XCore XS1 (eg CRC, LMUL) to, possibly, unexpected uses.
 
+Read it properly on http://xcore.github.com/doc_tips_and_tricks
 
 Required Repositories
 ================
