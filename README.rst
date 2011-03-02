@@ -5,7 +5,9 @@ Tips and tricks
 
 :Status:  complete
 
-:Maintainer:  henkmuller
+:Maintainer:  https://github.com/henkmuller
+
+:Description: Document on handy tips on using XCore
 
 
 This document presents a number of programming techniques for the XMOS
@@ -16,7 +18,7 @@ the XCore XS1 (eg CRC, LMUL) to, possibly, unexpected uses.
 Required Repositories
 ================
 
-   * xdoc git\@github.com:xcore/xdoc.git
+* xdoc git\@github.com:xcore/xdoc.git
 
 Support
 =======
