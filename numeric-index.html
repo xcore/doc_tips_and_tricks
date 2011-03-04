@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Computing a logarithm or sqrt &mdash; Tips and tricks v0v1 documentation</title>
+    <title>Numeric processing &mdash; Tips and tricks v0v1 documentation</title>
     <link rel="stylesheet" href="_static/xdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
@@ -23,9 +23,8 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="http://mathjax.connectmv.com/MathJax.js"></script>
     <link rel="top" title="Tips and tricks v0v1 documentation" href="index.html" />
-    <link rel="up" title="Numeric processing" href="numeric-index.html" />
-    <link rel="next" title="Division and modulo" href="div-mod.html" />
-    <link rel="prev" title="Pseudo Random Numbers" href="pseudo-random-numbers.html" /> 
+    <link rel="next" title="Pseudo Random Numbers" href="pseudo-random-numbers.html" />
+    <link rel="prev" title="Generating bit streams" href="generating-bit-streams.html" /> 
 
 <script>
 function setheight() {
@@ -52,55 +51,27 @@ document.getElementById('d1').style.height=h2 + "px";
         <div class="bodywrapper">
           <div class="body">
 <div style="float: right">
-<a href="pseudo-random-numbers.html"
+<a href="generating-bit-streams.html"
                         title="previous chapter"> &lt&lt </a>
-<a href="div-mod.html"
+<a href="pseudo-random-numbers.html"
                         title="next chapter"> &gt&gt </a></p>
 </div>
 
             
-  <div class="section" id="computing-a-logarithm-or-sqrt">
-<h1>Computing a logarithm or sqrt<a class="headerlink" href="#computing-a-logarithm-or-sqrt" title="Permalink to this headline">¶</a></h1>
-<p>The XS1 has an instruction to count the number of leading zeroes of a bit
-pattern, <tt class="docutils literal"><span class="pre">clz()</span></tt>. This function can be used to efficiently
-estimate the logarithm of a number. Assuming <span class="math">\(x \not = 0\)</span>, then:</p>
-<div class="math">
-\[\lfloor \log_2 x \rfloor = bpw - 1 - clz(x)\]</div>
-<p>This logarithm can be used as a first estimate for a square root,
-since:</p>
-<div class="math">
-\[\sqrt{x} = x^{\frac{1}{2}} = 2^{\frac{\log_2 x}{2}}\]</div>
-<p>This is all implemented using shift operations:</p>
-<div class="highlight-none"><div class="highlight"><pre>sqrtx = 1 &lt;&lt; ((31-clz(x))&gt;&gt;1);
-</pre></div>
+  <div class="section" id="numeric-processing">
+<h1>Numeric processing<a class="headerlink" href="#numeric-processing" title="Permalink to this headline">¶</a></h1>
+<p>Methods for anything numeric: integer arithmetic, fixed point arithmetic,
+random numbers.</p>
+<div class="section" id="table-of-contents">
+<h2>Table of Contents<a class="headerlink" href="#table-of-contents" title="Permalink to this headline">¶</a></h2>
 </div>
-<p>This estimate can be improved iteratively using the Newton-Raphson algorithm. Since the
-first bit is of the square root is already correct, only 3 or 4 iterations
-will produce an accurate square root:</p>
-<div class="highlight-none"><div class="highlight"><pre>int sqrt(int x) {
-  int d, root = 1 &lt;&lt; ((31-clz(x))&gt;&gt;1);
-  do {
-    d = (root*root - x)/(2*root);
-    root = root - d;
-  } while (d &gt; 1 || d &lt; -1);
-  return root;
-}
-</pre></div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="pseudo-random-numbers.html">Pseudo Random Numbers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sqrt-log.html">Computing a logarithm or sqrt</a></li>
+<li class="toctree-l1"><a class="reference internal" href="div-mod.html">Division and modulo</a></li>
+</ul>
 </div>
-<p>See Hacker&#8217;s delight <a class="reference internal" href="#warrenjr">[warrenjr]</a> and Paul Hsieh&#8217;s
-website <a class="reference internal" href="#sqrt-hsieh">[sqrt-hsieh]</a> for an in-depth discussion and better methods.</p>
-<table class="docutils citation" frame="void" id="warrenjr" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id1">[warrenjr]</a></td><td>Henry S Warren, <em>Hacker&#8217;s Delight</em>, ISBN 0201914654</td></tr>
-</tbody>
-</table>
-<table class="docutils citation" frame="void" id="sqrt-hsieh" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id2">[sqrt-hsieh]</a></td><td>Paul Hsieh, <a class="reference external" href="http://www.azillionmonkeys.com/qed/sqroot.html">http://www.azillionmonkeys.com/qed/sqroot.html</a></td></tr>
-</tbody>
-</table>
 </div>
 
 
@@ -113,9 +84,9 @@ website <a class="reference internal" href="#sqrt-hsieh">[sqrt-hsieh]</a> for an
 <h3><a href="index.html">Table Of Contents</a></h3>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="serial-index.html">Serial and Stream processing</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="numeric-index.html">Numeric processing</a><ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="">Numeric processing</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="pseudo-random-numbers.html">Pseudo Random Numbers</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="">Computing a logarithm or sqrt</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sqrt-log.html">Computing a logarithm or sqrt</a></li>
 <li class="toctree-l2"><a class="reference internal" href="div-mod.html">Division and modulo</a></li>
 </ul>
 </li>
