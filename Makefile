@@ -40,7 +40,7 @@
 # This variable should contain a space separated list of all
 # the directories containing buildable applications (usually
 # prefixed with the app_ prefix)
-BUILD_SUBDIRS = docs
+BUILD_SUBDIRS = doc
 
 # This variable should contain a space separated list of all
 # the directories containing buildable plugins (usually

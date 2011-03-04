@@ -12,14 +12,9 @@ the XCore XS1 (eg CRC, LMUL) to, possibly, unexpected uses.
 
 .. toctree::
 
-    realign-streams
+    serial-index.rst
+    numeric-index.rst
     hash-tables
-    parsing-bit-streams
-    generating-bit-streams
-    pseudo-random-numbers
-    sqrt-log
-    clearing-registers
-    extra-registers
     short-fifo
-    div-mod
     threading-speedup
+    assembly-index.rst
