@@ -1,0 +1,264 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Performing fixed point arithmetic &mdash; Tips and tricks v0v1 documentation</title>
+    <link rel="stylesheet" href="_static/xdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0v1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://mathjax.connectmv.com/MathJax.js"></script>
+    <link rel="top" title="Tips and tricks v0v1 documentation" href="index.html" />
+    <link rel="up" title="Numeric processing" href="numeric-index.html" />
+    <link rel="next" title="Computing a logarithm or sqrt" href="sqrt-log.html" />
+    <link rel="prev" title="Pseudo Random Numbers" href="pseudo-random-numbers.html" /> 
+
+<script>
+function setheight() {
+h1 = document.getElementById('d1').style.height;
+h2 = document.getElementById('d2').style.height;
+
+if (parseInt(h1) > parseInt(h2)) {
+document.getElementById('d2').style.height=h1 + "px";
+}
+else {
+document.getElementById('d1').style.height=h2 + "px";
+}
+
+}
+</script>
+</head>
+
+<body onload="setheight();">
+
+  
+
+    <div class="document" id='d1'>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+<div style="float: right">
+<a href="pseudo-random-numbers.html"
+                        title="previous chapter"> &lt&lt </a>
+<a href="sqrt-log.html"
+                        title="next chapter"> &gt&gt </a></p>
+</div>
+
+            
+  <div class="section" id="performing-fixed-point-arithmetic">
+<h1>Performing fixed point arithmetic<a class="headerlink" href="#performing-fixed-point-arithmetic" title="Permalink to this headline">¶</a></h1>
+<p>The XS1 has a series of instructions to aid in the implementation of
+fixed point arithmetic. The natively supported format is a 32 bit fixed
+point number with the binary point in some arbitrary (user defined)
+place. Both signed and unsigned fixed point numbers are supported.</p>
+<div class="section" id="single-word-numbers">
+<h2>Single word numbers<a class="headerlink" href="#single-word-numbers" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="representation">
+<h3>Representation<a class="headerlink" href="#representation" title="Permalink to this headline">¶</a></h3>
+<p>Unsigned fixed point numbers are stored as a 32-bit number. The value of
+the fixed point number is the integer interpretation of the 32-bit value
+multiplied by an exponent <span class="math">\(2^e\)</span> where <span class="math">\(e\)</span> is a user-defined
+fixed number, usually between -32 and 0 inclusive. For example, if
+<span class="math">\(e\)</span> is chosen to be -32, then numbers between 0 and 1 (exclusive) in
+steps of approximate <span class="math">\(2.3 \cdot 10^{10}\)</span> can be stored; and if <span class="math">\(e\)</span>
+is chosen to be -10, then numbers between 0 and 4,194,304 in steps of
+0.0009765625 can be represented.</p>
+<p>Signed fixed point numbers are stored in two&#8217;s complement as a 32-bit
+number. The value of the fixed point number is the two&#8217;s complement
+interpretation multiplied by an exponent <span class="math">\(2^e\)</span> where <span class="math">\(e\)</span> is a
+user-defined fixed number, usually between -31 and 0 inclusive. For
+example, if <span class="math">\(e\)</span> is chosen to be -31, then numbers between -1 and 1
+(exclusive) in steps of approximate <span class="math">\(4.6 \cdot 10^{10}\)</span> can be stored; and
+if <span class="math">\(e\)</span> is chosen to be -10, then numbers between -2,097,152 and
+2,097,151 in steps of 0.0009765625 can be represented.</p>
+<p>We use the notation X.Y to denote the precision, where X is the number of
+bits before the binary point, and Y is the number of bits after the binary
+point. Hence, <span class="math">\(e=-Y\)</span>, and <span class="math">\(X+Y=32\)</span></p>
+<p>Each variable in a program has at any stage an exponent associated with it.
+These exponents have to be known to the programmer, but do not have to be
+the same everywhere. We will give some examples later.</p>
+</div>
+<div class="section" id="arithmetic">
+<h3>Arithmetic<a class="headerlink" href="#arithmetic" title="Permalink to this headline">¶</a></h3>
+<p>Single length addition and subtraction can simply be performed by integer
+arithmetic, provided that the exponent on the left and the right operand
+are identical. If the exponents are different, then operand with the lowest
+exponent needs to be shifted right prior to the addition, in order to level
+the exponents. For example, if one number is represented as 8.24 and the
+other number as 16.16, then the first number must be shifted right 8 places
+prior to performing the addition or subtraction.</p>
+<p>Shifting the number right 8 places will cause a rounding error; the final
+result can be incremented by one if the seventh bit shifted out was a one bit
+in order to implement rounding. This can be implemented efficiently by
+adding <tt class="docutils literal"><span class="pre">0x80</span></tt> to the final value prior to shifting. In the case of a series
+of additions into an accumulator, the accumulator can be initialised to <tt class="docutils literal"><span class="pre">0x80</span></tt>.</p>
+<p>Multiplications of two numbers with representations X.Y and P.Q will result
+in a number with representation X+P.Y+Q; this number will not fit in a 32
+bit result. The XS1 can compute the full precision answer using a <tt class="docutils literal"><span class="pre">MACCS</span></tt>
+instruction, and then allows the programmer to select the part of the word
+that they are interested in, by picking the right bits out of the answer.</p>
+<p>Where a sequence of multiply accumulate operations is performed, the
+programmer would normally ensure that all results are represented in the
+same X+P.Y+Q format, and hence only at the end of the whole sequence do the
+right bits need to be selected.</p>
+<p>Divisions can be performed by a sequence of two long division instructions,
+assuming that the sign bit is computed separately.</p>
+</div>
+<div class="section" id="rounding">
+<h3>Rounding<a class="headerlink" href="#rounding" title="Permalink to this headline">¶</a></h3>
+<p>Rounding is typically an issue on multiply operations. Rounding can be
+implemented by initialising the accumulator of the <tt class="docutils literal"><span class="pre">MACCS</span></tt> instruction to
+0.5 rather than 0. For example, if afterwards the middle 32 bits of two
+32-bit words are to be selected, one would set the initial accumulator
+low word to 0x8000 to implement normal rounding.</p>
+</div>
+<div class="section" id="saturation">
+<h3>Saturation<a class="headerlink" href="#saturation" title="Permalink to this headline">¶</a></h3>
+<p>Each time that 32 bits are selected from a 64 bit multiplication, an
+overflow may occur. This means that the high word should be checked for
+overflow.</p>
+<p>Saturation can be implemented efficiently by checking whether sign
+extension is a no-op:</p>
+<div class="highlight-none"><div class="highlight"><pre>overflow = sext(x,24) != x;
+</pre></div>
+</div>
+<p>If a <tt class="docutils literal"><span class="pre">sext</span></tt> operation changes the number, then the number cannot be
+represented in the specified number of bits. For unsigned numbers
+<tt class="docutils literal"><span class="pre">zext</span></tt> is used.</p>
+</div>
+<div class="section" id="example-code-sequence">
+<h3>Example code sequence<a class="headerlink" href="#example-code-sequence" title="Permalink to this headline">¶</a></h3>
+<p>A simple example with some values is:</p>
+<div class="highlight-none"><div class="highlight"><pre>int h; unsigned l;
+int a = 0x0010000; // 1.0 in 16.16 format
+int b = 0x0004000; // 0.25 in 16.16 format
+int c = 0x0000100; // 1.0 in 24.8 format
+a = a + b;         // a is still in 16.16 format
+a = a &gt;&gt; 8;        // a is in 24.8 format
+a = a - c;         // a is in 24.8 format
+{h,l} = macs(a, b, 0, 0);    // {h,l} is in 40.24 format, ie, l is
+                             // in 8.24 and h is in 40.-8
+if (sext(h, 8) == 8) {
+    a = h &lt;&lt; 24 | l &gt;&gt; 8; // this is in 16.16 format once again.
+}
+if (h &gt; 0) {
+    a = 0x7fffffff;
+} else {
+    a = 0x80000000;
+}
+</pre></div>
+</div>
+<p>A more realistic example of a FIR filter is:</p>
+<div class="highlight-none"><div class="highlight"><pre>int fir(int inp[16], int filter[16]) { // 8.24 and 8.24  |filter[x]| &lt; 1
+    int h = 0;
+    unsigned l = 0x800000;
+    for(int i = 0; i &lt; 16; i++) {
+        {h,l} = macs(inp[i], filter[i], h, l);
+    }
+    if (sext(h, 8) == 8) {
+        return h &lt;&lt; 8 | l &gt;&gt; 24;
+    }
+    if (h &gt; 0) {
+        return 0x7fffffff;
+    } else {
+        return 0x80000000;
+    }
+}
+</pre></div>
+</div>
+<p>This example performs 16 MAC operations followed by a single saturation
+test. Note that the MAC operations cannot overflow since there is 7 bits of
+headroom in the filter-array.</p>
+</div>
+</div>
+<div class="section" id="multi-word-arithmetic">
+<h2>Multi word arithmetic<a class="headerlink" href="#multi-word-arithmetic" title="Permalink to this headline">¶</a></h2>
+<p>Longer words (64, 96, or more bits) can be represented in multiple words,
+and operated on by LADD, LMUL, LSUB and LDIV instructions.</p>
+<p>The representation can either be signed magnitude, or two&#8217;s complement.
+Signed magnitude is easier for multiplications and divisions, two&#8217;s
+complement is easier for add and subtract.</p>
+<p>Assuming unsigned arithmetic (and leaving the signed case to the reader),
+the code for an addition of a 64-bit number is:</p>
+<div class="highlight-none"><div class="highlight"><pre>LADD c, f, a, b, 0
+LADD c, g, d, e, c
+</pre></div>
+</div>
+<p>A multiplication of two 64-bit numbers comprises 4 LMUL instructions.
+Division of a 64-bit number by a 32-bit number comprises three LDIV
+instructions.</p>
+</div>
+</div>
+
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" id='d2'>
+        <div class="sphinxsidebarwrapper">
+<h3><a href="index.html">Tips and tricks (0v1)</a></h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="serial-index.html">Serial and Stream processing</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="numeric-index.html">Numeric processing</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="pseudo-random-numbers.html">Pseudo Random Numbers</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="">Performing fixed point arithmetic</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#single-word-numbers">Single word numbers</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#representation">Representation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#arithmetic">Arithmetic</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#rounding">Rounding</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#saturation">Saturation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#example-code-sequence">Example code sequence</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#multi-word-arithmetic">Multi word arithmetic</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="sqrt-log.html">Computing a logarithm or sqrt</a></li>
+<li class="toctree-l2"><a class="reference internal" href="div-mod.html">Division and modulo</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="hash-tables.html">Hash tables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="short-fifo.html">Building short FIFOs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="threading-speedup.html">Using multiple threads for super linear speedup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="assembly-index.html">Assembly Tips and Tricks</a></li>
+</ul>
+
+<div id="searchbox" style="display: none">
+  <h3>Search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+
+
+
+    <div class="footer">
+    </div>
+  </body>
+</html>
+
+
+
