@@ -3,7 +3,7 @@ Performing fixed point arithmetic
 
 The XS1 has a series of instructions to aid in the implementation of
 fixed point arithmetic. The natively supported format is a 32 bit fixed
-point number with the binary point in some aribitrary (user defined)
+point number with the binary point in some arbitrary (user defined)
 place. Both signed and unsigned fixed point numbers are supported.
 
 Single word numbers
@@ -17,7 +17,7 @@ the fixed point number is the integer interpretation of the 32-bit value
 multiplied by an exponent :math:`2^e` where :math:`e` is a user-defined
 fixed number, usually between -32 and 0 inclusive. For example, if
 :math:`e` is chosen to be -32, then numbers between 0 and 1 (exclusive) in
-steps of approx :math:`2.3 \cdot 10^{10}` can be stored; and if :math:`e`
+steps of approximate :math:`2.3 \cdot 10^{10}` can be stored; and if :math:`e`
 is chosen to be -10, then numbers between 0 and 4,194,304 in steps of
 0.0009765625 can be represented.
 
@@ -26,7 +26,7 @@ number. The value of the fixed point number is the two's complement
 interpretation multiplied by an exponent :math:`2^e` where :math:`e` is a
 user-defined fixed number, usually between -31 and 0 inclusive. For
 example, if :math:`e` is chosen to be -31, then numbers between -1 and 1
-(exclusive) in steps of approx :math:`4.6 \cdot 10^{10}` can be stored; and
+(exclusive) in steps of approximate :math:`4.6 \cdot 10^{10}` can be stored; and
 if :math:`e` is chosen to be -10, then numbers between -2,097,152 and
 2,097,151 in steps of 0.0009765625 can be represented.
 
@@ -49,9 +49,11 @@ the exponents. For example, if one number is represented as 8.24 and the
 other number as 16.16, then the first number must be shifted right 8 places
 prior to performing the addition or subtraction.
 
-Shfiting the number right 8 places will cause a rounding error; the final
-result can be incremented by if the seventh bit shifted out was a one bit
-in order to implement rounding.
+Shifting the number right 8 places will cause a rounding error; the final
+result can be incremented by one if the seventh bit shifted out was a one bit
+in order to implement rounding. This can be implemented efficiently by
+adding ``0x80`` to the final value prior to shifting. In the case of a series
+of additions into an accumulator, the accumulator can be initialised to ``0x80``.
 
 Multiplications of two numbers with representations X.Y and P.Q will result
 in a number with representation X+P.Y+Q; this number will not fit in a 32
@@ -64,7 +66,8 @@ programmer would normally ensure that all results are represented in the
 same X+P.Y+Q format, and hence only at the end of the whole sequence do the
 right bits need to be selected.
 
-Divisions can be performed by means of two long division instructions.
+Divisions can be performed by a sequence of two long division instructions,
+assuming that the sign bit is computed separately.
 
 Rounding
 ........
@@ -85,9 +88,10 @@ overflow.
 Saturation can be implemented efficiently by checking whether sign
 extension is a no-op::
 
-  sext(x,24) == x
+  overflow = sext(x,24) != x;
 
-If not, then the value x exceeds 24 bits signed. For unsigned number,
+If a ``sext`` operation changes the number, then the number cannot be
+represented in the specified number of bits. For unsigned numbers
 ``zext`` is used.
 
 Example code sequence
@@ -102,7 +106,7 @@ A simple example with some values is::
   a = a + b;         // a is still in 16.16 format
   a = a >> 8;        // a is in 24.8 format
   a = a - c;         // a is in 24.8 format
-  {h,l} = maccs(0, 0, a, b);   // {h,l} is in 40.24 format, ie, l is
+  {h,l} = mac(0, 0, a, b);     // {h,l} is in 40.24 format, ie, l is
                                // in 8.24 and h is in 40.-8
   if (sext(h, 8) == 8) {
     a = h << 24 | l >> 8; // this is in 16.16 format once again.
@@ -116,19 +120,19 @@ A simple example with some values is::
 
 A more realistic example of a FIR filter is::
 
-  fir(int inp[16], int filter[16]) { // 8.24 and 8.24  |filter[x]| < 1
+  int fir(int inp[16], int filter[16]) { // 8.24 and 8.24  |filter[x]| < 1
     h = 0;
     l = 0x800000;
     for(int i = 0; i < 16; i++) {
-      {h,l} = maccs(h, l, inp[i], filter[i]);
+      {h,l} = mac(h, l, inp[i], filter[i]);
     }
     if (sext(h, 8) == 8) {
       return h << 8 | l >> 24;
     } else {
       if (h > 0) {
-        return = 0x7fffffff;
+        return 0x7fffffff;
       } else {
-        return = 0x80000000;
+        return 0x80000000;
       }
     }
   }
@@ -140,18 +144,20 @@ headroom in the filter-array.
 Multi word arithmetic
 ---------------------
 
-Longer words (64, 96, or more bits) can be represented by using the LADD,
-LMUL, LSUB and LDIV instructions.
+Longer words (64, 96, or more bits) can be represented in multiple words,
+and operated on by LADD, LMUL, LSUB and LDIV instructions.
 
 The representation can either be signed magnitude, or two's complement.
 Signed magnitude is easier for multiplications and divisions, two's
 complement is easier for add and subtract.
 
 Assuming unsigned arithmetic (and leaving the signed case to the reader),
-the code for an addition is::
+the code for an addition of a 64-bit number is::
 
   LADD c, f, a, b, 0
   LADD c, g, d, e, c
 
-An LMUL comprises 4 LMUL instructions
+A multiplication of two 64-bit numbers comprises 4 LMUL instructions.
+Division of a 64-bit number by a 32-bit number comprises three LDIV
+instructions.
 
