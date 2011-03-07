@@ -81,7 +81,7 @@ low word to 0x8000 to implement normal rounding.
 Saturation
 ..........
 
-Each time that 32 bits are selected from a 64 bit multiplication, an
+Each time that 32 bits are selected from a 64 bit result, an
 overflow may occur. This means that the high word should be checked for
 overflow.
 
