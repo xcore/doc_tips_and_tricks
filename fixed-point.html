@@ -65,8 +65,9 @@ document.getElementById('d1').style.height=h2 + "px";
 fixed point arithmetic. The natively supported format is a 32 bit fixed
 point number with the binary point in some arbitrary (user defined)
 place. Both signed and unsigned fixed point numbers are supported.</p>
-<div class="section" id="single-word-numbers">
-<h2>Single word numbers<a class="headerlink" href="#single-word-numbers" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="single-word-arithmetic">
+<h2>Single word arithmetic<a class="headerlink" href="#single-word-arithmetic" title="Permalink to this headline">¶</a></h2>
+<p>Single word arithmetic uses a single 32-bit word to represent a number.</p>
 <div class="section" id="representation">
 <h3>Representation<a class="headerlink" href="#representation" title="Permalink to this headline">¶</a></h3>
 <p>Unsigned fixed point numbers are stored as a 32-bit number. The value of
@@ -74,75 +75,84 @@ the fixed point number is the integer interpretation of the 32-bit value
 multiplied by an exponent <span class="math">\(2^e\)</span> where <span class="math">\(e\)</span> is a user-defined
 fixed number, usually between -32 and 0 inclusive. For example, if
 <span class="math">\(e\)</span> is chosen to be -32, then numbers between 0 and 1 (exclusive) in
-steps of approximate <span class="math">\(2.3 \cdot 10^{10}\)</span> can be stored; and if <span class="math">\(e\)</span>
+steps of approximately <span class="math">\(2.3 \cdot 10^{-10}\)</span> can be stored; and if <span class="math">\(e\)</span>
 is chosen to be -10, then numbers between 0 and 4,194,304 in steps of
 0.0009765625 can be represented.</p>
 <p>Signed fixed point numbers are stored in two&#8217;s complement as a 32-bit
 number. The value of the fixed point number is the two&#8217;s complement
-interpretation multiplied by an exponent <span class="math">\(2^e\)</span> where <span class="math">\(e\)</span> is a
+interpretation of the bit pattern multiplied by an exponent <span class="math">\(2^e\)</span> where <span class="math">\(e\)</span> is a
 user-defined fixed number, usually between -31 and 0 inclusive. For
 example, if <span class="math">\(e\)</span> is chosen to be -31, then numbers between -1 and 1
-(exclusive) in steps of approximate <span class="math">\(4.6 \cdot 10^{10}\)</span> can be stored; and
+(exclusive) in steps of approximately <span class="math">\(4.6 \cdot 10^{-10}\)</span> can be stored; and
 if <span class="math">\(e\)</span> is chosen to be -10, then numbers between -2,097,152 and
 2,097,151 in steps of 0.0009765625 can be represented.</p>
 <p>We use the notation X.Y to denote the precision, where X is the number of
 bits before the binary point, and Y is the number of bits after the binary
-point. Hence, <span class="math">\(e=-Y\)</span>, and <span class="math">\(X+Y=32\)</span></p>
+point. Hence, <span class="math">\(e=-Y\)</span>, and <span class="math">\(X+Y=32\)</span>. For example, the value one
+is represented in 8.24 by bit pattern <tt class="docutils literal"><span class="pre">0x01000000</span></tt>, and in 16.16 by bit
+pattern <tt class="docutils literal"><span class="pre">0x00010000</span></tt>.</p>
 <p>Each variable in a program has at any stage an exponent associated with it.
 These exponents have to be known to the programmer, but do not have to be
 the same everywhere. We will give some examples later.</p>
 </div>
 <div class="section" id="arithmetic">
 <h3>Arithmetic<a class="headerlink" href="#arithmetic" title="Permalink to this headline">¶</a></h3>
-<p>Single length addition and subtraction can simply be performed by integer
+<p>Single length addition and subtraction are performed by integer
 arithmetic, provided that the exponent on the left and the right operand
 are identical. If the exponents are different, then operand with the lowest
 exponent needs to be shifted right prior to the addition, in order to level
 the exponents. For example, if one number is represented as 8.24 and the
 other number as 16.16, then the first number must be shifted right 8 places
-prior to performing the addition or subtraction.</p>
-<p>Shifting the number right 8 places will cause a rounding error; the final
-result can be incremented by one if the seventh bit shifted out was a one bit
-in order to implement rounding. This can be implemented efficiently by
-adding <tt class="docutils literal"><span class="pre">0x80</span></tt> to the final value prior to shifting. In the case of a series
-of additions into an accumulator, the accumulator can be initialised to <tt class="docutils literal"><span class="pre">0x80</span></tt>.</p>
-<p>Multiplications of two numbers with representations X.Y and P.Q will result
+prior to performing the addition or subtraction.
+Shifting a number right will cause a rounding error, see below
+on how implement rounding.</p>
+<p>A multiplication of two numbers with representations X.Y and P.Q will result
 in a number with representation X+P.Y+Q; this number will not fit in a 32
 bit result. The XS1 can compute the full precision answer using a <tt class="docutils literal"><span class="pre">MACCS</span></tt>
 instruction, and then allows the programmer to select the part of the word
-that they are interested in, by picking the right bits out of the answer.</p>
+that they are interested in, by slicing the appropriate bits out of the answer.</p>
 <p>Where a sequence of multiply accumulate operations is performed, the
 programmer would normally ensure that all results are represented in the
-same X+P.Y+Q format, and hence only at the end of the whole sequence do the
-right bits need to be selected.</p>
+same X+P.Y+Q format, and hence only at the end of the whole sequence are
+the appropriate bits sliced out of the final answer.</p>
 <p>Divisions can be performed by a sequence of two long division instructions,
 assuming that the sign bit is computed separately.</p>
 </div>
 <div class="section" id="rounding">
 <h3>Rounding<a class="headerlink" href="#rounding" title="Permalink to this headline">¶</a></h3>
-<p>Rounding is typically an issue on multiply operations. Rounding can be
+<p>Rounding is required both after a multiplication, or prior to addition and
+subtraction of values with different exponents.</p>
+<p>The principal of rounding is to increment the final result by one, if the
+most significant bit that was truncated was <tt class="docutils literal"><span class="pre">1</span></tt>. This can be implemented
+efficiently by adding a value prior to truncation. For example, if the last
+eight bits are going to be thrown away, then adding <tt class="docutils literal"><span class="pre">0x80</span></tt> prior to the
+shift will implement a rounding operation.</p>
+<p>In the case of multiplication operations, rounding can be
 implemented by initialising the accumulator of the <tt class="docutils literal"><span class="pre">MACCS</span></tt> instruction to
 0.5 rather than 0. For example, if afterwards the middle 32 bits of two
 32-bit words are to be selected, one would set the initial accumulator
-low word to 0x8000 to implement normal rounding.</p>
+low word to 0x8000 to implement rounding.</p>
+<p>Other rounding methods, such as dithering, can be implemented by
+initialising the accumulator to a value between 0 and 0xFFFF, with an
+appropriate PDF. See the chapter on pseudo random numbers.</p>
 </div>
-<div class="section" id="saturation">
-<h3>Saturation<a class="headerlink" href="#saturation" title="Permalink to this headline">¶</a></h3>
-<p>Each time that 32 bits are selected from a 64 bit multiplication, an
-overflow may occur. This means that the high word should be checked for
-overflow.</p>
-<p>Saturation can be implemented efficiently by checking whether sign
+<div class="section" id="overflow-and-saturation">
+<h3>Overflow and Saturation<a class="headerlink" href="#overflow-and-saturation" title="Permalink to this headline">¶</a></h3>
+<p>Each time that 32 bits are selected from a 64 bit result, an
+overflow may occur. If overflow should be dealt with, then the high word of
+the result should be checked for overflow.</p>
+<p>An overflow check can be implemented efficiently by checking whether sign
 extension is a no-op:</p>
 <div class="highlight-none"><div class="highlight"><pre>overflow = sext(x,24) != x;
 </pre></div>
 </div>
 <p>If a <tt class="docutils literal"><span class="pre">sext</span></tt> operation changes the number, then the number cannot be
-represented in the specified number of bits. For unsigned numbers
-<tt class="docutils literal"><span class="pre">zext</span></tt> is used.</p>
+represented in the specified number of bits, indicating an overflow
+condition. For unsigned numbers <tt class="docutils literal"><span class="pre">zext</span></tt> is used.</p>
 </div>
 <div class="section" id="example-code-sequence">
 <h3>Example code sequence<a class="headerlink" href="#example-code-sequence" title="Permalink to this headline">¶</a></h3>
-<p>A simple example with some values is:</p>
+<p>An example to illustrate formats and conversions is shown below:</p>
 <div class="highlight-none"><div class="highlight"><pre>int h; unsigned l;
 int a = 0x0010000; // 1.0 in 16.16 format
 int b = 0x0004000; // 0.25 in 16.16 format
@@ -162,7 +172,7 @@ if (h &gt; 0) {
 }
 </pre></div>
 </div>
-<p>A more realistic example of a FIR filter is:</p>
+<p>A more realistic example implements a FIR filter as follows:</p>
 <div class="highlight-none"><div class="highlight"><pre>int fir(int inp[16], int filter[16]) { // 8.24 and 8.24  |filter[x]| &lt; 1
     int h = 0;
     unsigned l = 0x800000;
@@ -187,7 +197,8 @@ headroom in the filter-array.</p>
 </div>
 <div class="section" id="multi-word-arithmetic">
 <h2>Multi word arithmetic<a class="headerlink" href="#multi-word-arithmetic" title="Permalink to this headline">¶</a></h2>
-<p>Longer words (64, 96, or more bits) can be represented in multiple words,
+<p>Values that require a higher precision (64, 96, or more bits)
+can be represented in multiple words,
 and operated on by LADD, LMUL, LSUB and LDIV instructions.</p>
 <p>The representation can either be signed magnitude, or two&#8217;s complement.
 Signed magnitude is easier for multiplications and divisions, two&#8217;s
@@ -217,11 +228,11 @@ instructions.</p>
 <li class="toctree-l1 current"><a class="reference internal" href="numeric-index.html">Numeric processing</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="pseudo-random-numbers.html">Pseudo Random Numbers</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="">Performing fixed point arithmetic</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#single-word-numbers">Single word numbers</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#single-word-arithmetic">Single word arithmetic</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#representation">Representation</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#arithmetic">Arithmetic</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#rounding">Rounding</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#saturation">Saturation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#overflow-and-saturation">Overflow and Saturation</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#example-code-sequence">Example code sequence</a></li>
 </ul>
 </li>
