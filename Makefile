@@ -56,6 +56,8 @@ TEST_SUBDIRS =
 
 %.all:
 	cd $* && xmake all
+	cp -r doc/_build/html/* ../doc_tips_and_tricks_gh_pages/
+	cp -r doc/_build/html/.doctrees ../doc_tips_and_tricks_gh_pages/
 
 %.clean:
 	cd $* && xmake clean

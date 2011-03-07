@@ -7,5 +7,6 @@ random numbers.
 .. toctree::
 
     pseudo-random-numbers
+    fixed-point
     sqrt-log
     div-mod

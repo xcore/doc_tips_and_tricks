@@ -6,8 +6,8 @@ fixed point arithmetic. The natively supported format is a 32 bit fixed
 point number with the binary point in some arbitrary (user defined)
 place. Both signed and unsigned fixed point numbers are supported.
 
-Single word numbers
--------------------
+Single word arithmetic
+----------------------
 
 Representation
 ..............
@@ -17,7 +17,7 @@ the fixed point number is the integer interpretation of the 32-bit value
 multiplied by an exponent :math:`2^e` where :math:`e` is a user-defined
 fixed number, usually between -32 and 0 inclusive. For example, if
 :math:`e` is chosen to be -32, then numbers between 0 and 1 (exclusive) in
-steps of approximate :math:`2.3 \cdot 10^{10}` can be stored; and if :math:`e`
+steps of approximate :math:`2.3 \cdot 10^{-10}` can be stored; and if :math:`e`
 is chosen to be -10, then numbers between 0 and 4,194,304 in steps of
 0.0009765625 can be represented.
 
@@ -26,7 +26,7 @@ number. The value of the fixed point number is the two's complement
 interpretation multiplied by an exponent :math:`2^e` where :math:`e` is a
 user-defined fixed number, usually between -31 and 0 inclusive. For
 example, if :math:`e` is chosen to be -31, then numbers between -1 and 1
-(exclusive) in steps of approximate :math:`4.6 \cdot 10^{10}` can be stored; and
+(exclusive) in steps of approximate :math:`4.6 \cdot 10^{-10}` can be stored; and
 if :math:`e` is chosen to be -10, then numbers between -2,097,152 and
 2,097,151 in steps of 0.0009765625 can be represented.
 
@@ -99,42 +99,40 @@ Example code sequence
 
 A simple example with some values is::
 
-  int h, l;
+  int h; unsigned l;
   int a = 0x0010000; // 1.0 in 16.16 format
   int b = 0x0004000; // 0.25 in 16.16 format
   int c = 0x0000100; // 1.0 in 24.8 format
   a = a + b;         // a is still in 16.16 format
   a = a >> 8;        // a is in 24.8 format
   a = a - c;         // a is in 24.8 format
-  {h,l} = mac(0, 0, a, b);     // {h,l} is in 40.24 format, ie, l is
+  {h,l} = macs(a, b, 0, 0);    // {h,l} is in 40.24 format, ie, l is
                                // in 8.24 and h is in 40.-8
   if (sext(h, 8) == 8) {
-    a = h << 24 | l >> 8; // this is in 16.16 format once again.
-  } else {
-    if (h > 0) {
+      a = h << 24 | l >> 8; // this is in 16.16 format once again.
+  } 
+  if (h > 0) {
       a = 0x7fffffff;
-    } else {
+  } else {
       a = 0x80000000;
-    }
   }
 
 A more realistic example of a FIR filter is::
 
   int fir(int inp[16], int filter[16]) { // 8.24 and 8.24  |filter[x]| < 1
-    h = 0;
-    l = 0x800000;
-    for(int i = 0; i < 16; i++) {
-      {h,l} = mac(h, l, inp[i], filter[i]);
-    }
-    if (sext(h, 8) == 8) {
-      return h << 8 | l >> 24;
-    } else {
-      if (h > 0) {
-        return 0x7fffffff;
-      } else {
-        return 0x80000000;
+      int h = 0;
+      unsigned l = 0x800000;
+      for(int i = 0; i < 16; i++) {
+          {h,l} = macs(inp[i], filter[i], h, l);
       }
-    }
+      if (sext(h, 8) == 8) {
+          return h << 8 | l >> 24;
+      }
+      if (h > 0) {
+          return 0x7fffffff;
+      } else {
+          return 0x80000000;
+      }
   }
 
 This example performs 16 MAC operations followed by a single saturation

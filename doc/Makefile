@@ -4,3 +4,5 @@ DOXYGEN_DIRS=../../doc_tips_and_tricks/module_tips_and_tricks
 SOURCE_INCLUDE_DIRS=../../doc_tips_and_tricks
 XDOC_DIR ?= ../../xdoc
 include $(XDOC_DIR)/Makefile.inc
+
+all: html pdf
