@@ -9,6 +9,8 @@ place. Both signed and unsigned fixed point numbers are supported.
 Single word arithmetic
 ----------------------
 
+Single word arithmetic uses a single 32-bit word to represent a number.
+
 Representation
 ..............
 
@@ -17,22 +19,24 @@ the fixed point number is the integer interpretation of the 32-bit value
 multiplied by an exponent :math:`2^e` where :math:`e` is a user-defined
 fixed number, usually between -32 and 0 inclusive. For example, if
 :math:`e` is chosen to be -32, then numbers between 0 and 1 (exclusive) in
-steps of approximate :math:`2.3 \cdot 10^{-10}` can be stored; and if :math:`e`
+steps of approximately :math:`2.3 \cdot 10^{-10}` can be stored; and if :math:`e`
 is chosen to be -10, then numbers between 0 and 4,194,304 in steps of
 0.0009765625 can be represented.
 
 Signed fixed point numbers are stored in two's complement as a 32-bit
 number. The value of the fixed point number is the two's complement
-interpretation multiplied by an exponent :math:`2^e` where :math:`e` is a
+interpretation of the bit pattern multiplied by an exponent :math:`2^e` where :math:`e` is a
 user-defined fixed number, usually between -31 and 0 inclusive. For
 example, if :math:`e` is chosen to be -31, then numbers between -1 and 1
-(exclusive) in steps of approximate :math:`4.6 \cdot 10^{-10}` can be stored; and
+(exclusive) in steps of approximately :math:`4.6 \cdot 10^{-10}` can be stored; and
 if :math:`e` is chosen to be -10, then numbers between -2,097,152 and
 2,097,151 in steps of 0.0009765625 can be represented.
 
 We use the notation X.Y to denote the precision, where X is the number of
 bits before the binary point, and Y is the number of bits after the binary
-point. Hence, :math:`e=-Y`, and :math:`X+Y=32`
+point. Hence, :math:`e=-Y`, and :math:`X+Y=32`. For example, the value one
+is represented in 8.24 by bit pattern ``0x01000000``, and in 16.16 by bit
+pattern ``0x00010000``.
 
 Each variable in a program has at any stage an exponent associated with it.
 These exponents have to be known to the programmer, but do not have to be
@@ -41,30 +45,26 @@ the same everywhere. We will give some examples later.
 Arithmetic
 ..........
 
-Single length addition and subtraction can simply be performed by integer
+Single length addition and subtraction are performed by integer
 arithmetic, provided that the exponent on the left and the right operand
 are identical. If the exponents are different, then operand with the lowest
 exponent needs to be shifted right prior to the addition, in order to level
 the exponents. For example, if one number is represented as 8.24 and the
 other number as 16.16, then the first number must be shifted right 8 places
 prior to performing the addition or subtraction.
+Shifting a number right will cause a rounding error, see below
+on how implement rounding.
 
-Shifting the number right 8 places will cause a rounding error; the final
-result can be incremented by one if the seventh bit shifted out was a one bit
-in order to implement rounding. This can be implemented efficiently by
-adding ``0x80`` to the final value prior to shifting. In the case of a series
-of additions into an accumulator, the accumulator can be initialised to ``0x80``.
-
-Multiplications of two numbers with representations X.Y and P.Q will result
+A multiplication of two numbers with representations X.Y and P.Q will result
 in a number with representation X+P.Y+Q; this number will not fit in a 32
 bit result. The XS1 can compute the full precision answer using a ``MACCS``
 instruction, and then allows the programmer to select the part of the word
-that they are interested in, by picking the right bits out of the answer.
+that they are interested in, by slicing the appropriate bits out of the answer.
 
 Where a sequence of multiply accumulate operations is performed, the
 programmer would normally ensure that all results are represented in the
-same X+P.Y+Q format, and hence only at the end of the whole sequence do the
-right bits need to be selected.
+same X+P.Y+Q format, and hence only at the end of the whole sequence are
+the appropriate bits sliced out of the final answer.
 
 Divisions can be performed by a sequence of two long division instructions,
 assuming that the sign bit is computed separately.
@@ -72,32 +72,45 @@ assuming that the sign bit is computed separately.
 Rounding
 ........
 
-Rounding is typically an issue on multiply operations. Rounding can be
+Rounding is required both after a multiplication, or prior to addition and
+subtraction of values with different exponents.
+
+The principal of rounding is to increment the final result by one, if the
+most significant bit that was truncated was ``1``. This can be implemented
+efficiently by adding a value prior to truncation. For example, if the last
+eight bits are going to be thrown away, then adding ``0x80`` prior to the
+shift will implement a rounding operation.
+
+In the case of multiplication operations, rounding can be
 implemented by initialising the accumulator of the ``MACCS`` instruction to
 0.5 rather than 0. For example, if afterwards the middle 32 bits of two
 32-bit words are to be selected, one would set the initial accumulator
-low word to 0x8000 to implement normal rounding.
+low word to 0x8000 to implement rounding.
 
-Saturation
-..........
+Other rounding methods, such as dithering, can be implemented by
+initialising the accumulator to a value between 0 and 0xFFFF, with an
+appropriate PDF. See the chapter on pseudo random numbers.
+
+Overflow and Saturation
+.......................
 
 Each time that 32 bits are selected from a 64 bit result, an
-overflow may occur. This means that the high word should be checked for
-overflow.
+overflow may occur. If overflow should be dealt with, then the high word of
+the result should be checked for overflow.
 
-Saturation can be implemented efficiently by checking whether sign
+An overflow check can be implemented efficiently by checking whether sign
 extension is a no-op::
 
   overflow = sext(x,24) != x;
 
 If a ``sext`` operation changes the number, then the number cannot be
-represented in the specified number of bits. For unsigned numbers
-``zext`` is used.
+represented in the specified number of bits, indicating an overflow
+condition. For unsigned numbers ``zext`` is used.
 
 Example code sequence
 .....................
 
-A simple example with some values is::
+An example to illustrate formats and conversions is shown below::
 
   int h; unsigned l;
   int a = 0x0010000; // 1.0 in 16.16 format
@@ -117,7 +130,7 @@ A simple example with some values is::
       a = 0x80000000;
   }
 
-A more realistic example of a FIR filter is::
+A more realistic example implements a FIR filter as follows::
 
   int fir(int inp[16], int filter[16]) { // 8.24 and 8.24  |filter[x]| < 1
       int h = 0;
@@ -142,7 +155,8 @@ headroom in the filter-array.
 Multi word arithmetic
 ---------------------
 
-Longer words (64, 96, or more bits) can be represented in multiple words,
+Values that require a higher precision (64, 96, or more bits)
+can be represented in multiple words,
 and operated on by LADD, LMUL, LSUB and LDIV instructions.
 
 The representation can either be signed magnitude, or two's complement.
