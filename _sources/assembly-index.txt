@@ -9,3 +9,4 @@ instructions.
 
     clearing-registers
     extra-registers
+    modulo-counting
