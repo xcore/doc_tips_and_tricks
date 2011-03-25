@@ -1,0 +1,137 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Implementing a modulo counter &mdash; Tips and tricks v0v1 documentation</title>
+    <link rel="stylesheet" href="_static/xdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0v1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://mathjax.connectmv.com/MathJax.js"></script>
+    <link rel="top" title="Tips and tricks v0v1 documentation" href="index.html" />
+    <link rel="up" title="Assembly Tips and Tricks" href="assembly-index.html" />
+    <link rel="prev" title="Using extra registers" href="extra-registers.html" /> 
+
+<script>
+function setheight() {
+h1 = document.getElementById('d1').style.height;
+h2 = document.getElementById('d2').style.height;
+
+if (parseInt(h1) > parseInt(h2)) {
+document.getElementById('d2').style.height=h1 + "px";
+}
+else {
+document.getElementById('d1').style.height=h2 + "px";
+}
+
+}
+</script>
+</head>
+
+<body onload="setheight();">
+
+  
+
+    <div class="document" id='d1'>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+<div style="float: right">
+<a href="extra-registers.html"
+                        title="previous chapter"> &lt&lt </a>
+</div>
+
+            
+  <div class="section" id="implementing-a-modulo-counter">
+<h1>Implementing a modulo counter<a class="headerlink" href="#implementing-a-modulo-counter" title="Permalink to this headline">¶</a></h1>
+<p>When you need a counter that counts modulo N, this can be implemented using
+an LSUB instruction. An LSUB subtracts two numbers and a &#8220;borrow&#8221;, and
+produces the result and a borrow. Supply as input parameters:</p>
+<ul class="simple">
+<li>A zero borrow (any address that points to a word or short will do)</li>
+<li>The number N</li>
+<li>The value of the counter</li>
+</ul>
+<p>The LSUB instruction produces</p>
+<ul class="simple">
+<li>An outgoing borrow - if this is &#8220;zero&#8221; then the counter has wrapped</li>
+<li>The wrapped counter, only use this if the borrow is zero.</li>
+</ul>
+<p>This implements both the comparison and the computation of the wrapped
+counter, provided that the counter is between N and 2N-1.</p>
+<p>An example program:</p>
+<div class="highlight-none"><div class="highlight"><pre>  ldc    r1, 0x9842            // Zero borrow, any even number will do
+  ldc    r5, 10                // Value of N
+  ldc    r3, 0                 // The counter
+
+  ...
+  add    r3, r3, 3
+  lsub   r0, r2, r3, r5, r1
+  bt     r0, noWrap
+  or     r3, r2, r2            // Copy r2 to r3; can be avoided by
+noWrap:                        // judicious register renaming
+  ...
+</pre></div>
+</div>
+</div>
+
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" id='d2'>
+        <div class="sphinxsidebarwrapper">
+<h3><a href="index.html">Tips and tricks (0v1)</a></h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="serial-index.html">Serial and Stream processing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="numeric-index.html">Numeric processing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hash-tables.html">Hash tables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="short-fifo.html">Building short FIFOs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="threading-speedup.html">Using multiple threads for super linear speedup</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="assembly-index.html">Assembly Tips and Tricks</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="clearing-registers.html">Clearing two registers simultaneously</a></li>
+<li class="toctree-l2"><a class="reference internal" href="extra-registers.html">Using extra registers</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="">Implementing a modulo counter</a></li>
+</ul>
+</li>
+</ul>
+
+<div id="searchbox" style="display: none">
+  <h3>Search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+
+
+
+    <div class="footer">
+    </div>
+  </body>
+</html>
+
+
+
