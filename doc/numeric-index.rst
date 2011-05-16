@@ -1,8 +1,8 @@
 Numeric processing
 ==================
 
-Methods for anything numeric: integer arithmetic, fixed point arithmetic,
-random numbers.
+Methods for anything numeric: random numbers, fixed point arithmetic
+(including long numbers), square roots, and divisions.
 
 .. toctree::
 

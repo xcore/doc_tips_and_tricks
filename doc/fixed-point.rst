@@ -107,6 +107,17 @@ If a ``sext`` operation changes the number, then the number cannot be
 represented in the specified number of bits, indicating an overflow
 condition. For unsigned numbers ``zext`` is used.
 
+The only operations that checks on overflow are LADD, LSUB, and LMUL. MACCU
+and MACCS do not check on overflow. A combination of LADD and MACCU can be
+used to implement a multiply-accumulate that checks for overflow as
+follows::
+
+  // adds h:l to a*b leaves result in h:l and flags in overflow:
+  int overflow, x = 0;
+  {x,l} = macu(a, b, x, l)
+  asm("ladd %0, %1, %2, %3, %4" : "=r"(overflow), "=r"(h) : "r"(x), "r"(h), "r"(0))
+
+
 Example code sequence
 .....................
 
@@ -152,7 +163,7 @@ This example performs 16 MAC operations followed by a single saturation
 test. Note that the MAC operations cannot overflow since there is 7 bits of
 headroom in the filter-array.
 
-Multi word arithmetic
+Multi-word arithmetic
 ---------------------
 
 Values that require a higher precision (64, 96, or more bits)
@@ -171,5 +182,19 @@ the code for an addition of a 64-bit number is::
 
 A multiplication of two 64-bit numbers comprises 4 LMUL instructions.
 Division of a 64-bit number by a 32-bit number comprises three LDIV
-instructions.
+instructions. More instructions are required if numbers are signed, and if
+they are represented in two's complement.
+
+Long shift instructions have to be implemented using shift- and
+or-instructions::
+
+  {int,unsigned} static inline lshl(int h, unsigned l, int n) {
+    return { (h << n) | (l >> (32 - n)), l << n };
+  }
+
+  {int,unsigned} static inline lshr(int h, unsigned l, int n) {
+    return { h >> n, (l >> n) | (h << (32 - n)) };
+  }
+
+These take six instructions each.
 
