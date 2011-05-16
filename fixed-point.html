@@ -149,6 +149,16 @@ extension is a no-op:</p>
 <p>If a <tt class="docutils literal"><span class="pre">sext</span></tt> operation changes the number, then the number cannot be
 represented in the specified number of bits, indicating an overflow
 condition. For unsigned numbers <tt class="docutils literal"><span class="pre">zext</span></tt> is used.</p>
+<p>The only operations that checks on overflow are LADD, LSUB, and LMUL. MACCU
+and MACCS do not check on overflow. A combination of LADD and MACCU can be
+used to implement a multiply-accumulate that checks for overflow as
+follows:</p>
+<div class="highlight-none"><div class="highlight"><pre>// adds h:l to a*b leaves result in h:l and flags in overflow:
+int overflow, x = 0;
+{x,l} = macu(a, b, x, l)
+asm(&quot;ladd %0, %1, %2, %3, %4&quot; : &quot;=r&quot;(overflow), &quot;=r&quot;(h) : &quot;r&quot;(x), &quot;r&quot;(h), &quot;r&quot;(0))
+</pre></div>
+</div>
 </div>
 <div class="section" id="example-code-sequence">
 <h3>Example code sequence<a class="headerlink" href="#example-code-sequence" title="Permalink to this headline">¶</a></h3>
@@ -196,7 +206,7 @@ headroom in the filter-array.</p>
 </div>
 </div>
 <div class="section" id="multi-word-arithmetic">
-<h2>Multi word arithmetic<a class="headerlink" href="#multi-word-arithmetic" title="Permalink to this headline">¶</a></h2>
+<h2>Multi-word arithmetic<a class="headerlink" href="#multi-word-arithmetic" title="Permalink to this headline">¶</a></h2>
 <p>Values that require a higher precision (64, 96, or more bits)
 can be represented in multiple words,
 and operated on by LADD, LMUL, LSUB and LDIV instructions.</p>
@@ -211,7 +221,20 @@ LADD c, g, d, e, c
 </div>
 <p>A multiplication of two 64-bit numbers comprises 4 LMUL instructions.
 Division of a 64-bit number by a 32-bit number comprises three LDIV
-instructions.</p>
+instructions. More instructions are required if numbers are signed, and if
+they are represented in two&#8217;s complement.</p>
+<p>Long shift instructions have to be implemented using shift- and
+or-instructions:</p>
+<div class="highlight-none"><div class="highlight"><pre>{int,unsigned} static inline lshl(int h, unsigned l, int n) {
+  return { (h &lt;&lt; n) | (l &gt;&gt; (32 - n)), l &lt;&lt; n };
+}
+
+{int,unsigned} static inline lshr(int h, unsigned l, int n) {
+  return { h &gt;&gt; n, (l &gt;&gt; n) | (h &lt;&lt; (32 - n)) };
+}
+</pre></div>
+</div>
+<p>These take six instructions each.</p>
 </div>
 </div>
 
@@ -236,7 +259,7 @@ instructions.</p>
 <li class="toctree-l4"><a class="reference internal" href="#example-code-sequence">Example code sequence</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#multi-word-arithmetic">Multi word arithmetic</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#multi-word-arithmetic">Multi-word arithmetic</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="sqrt-log.html">Computing a logarithm or sqrt</a></li>
