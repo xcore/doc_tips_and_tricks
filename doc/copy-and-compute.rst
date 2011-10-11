@@ -22,7 +22,7 @@ If we force ``a * b + c + d`` to be positive, then ``a`` will be copied
 into ``d``, and ``a * b + c + d`` will be calculated into ``e``. We can
 force the answer to be positive by loading ``d`` with an appropriate
 offset, for example ``0x10000`` for our example (since port timers are
-16 bits only). Hence:
+16 bits only). Hence, the above example code can be written as::
 
     port :> value @ newTime;
     {oldTime,diff} = lmul(-1, newTime, oldTime, 0x10000);
