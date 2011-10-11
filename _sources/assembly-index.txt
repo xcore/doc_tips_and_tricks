@@ -10,3 +10,4 @@ instructions.
     clearing-registers
     extra-registers
     modulo-counting
+    copy-and-compute

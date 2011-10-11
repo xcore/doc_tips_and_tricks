@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Implementing a modulo counter &mdash; Tips and tricks v0v1 documentation</title>
+    <title>Copying a register simultaneous with a computation &mdash; Tips and tricks v0v1 documentation</title>
     <link rel="stylesheet" href="_static/xdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
@@ -25,8 +25,7 @@
     <script type="text/javascript" src="_static/xcomment.js"></script>
     <link rel="top" title="Tips and tricks v0v1 documentation" href="index.html" />
     <link rel="up" title="Assembly Tips and Tricks" href="assembly-index.html" />
-    <link rel="next" title="Copying a register simultaneous with a computation" href="copy-and-compute.html" />
-    <link rel="prev" title="Using extra registers" href="extra-registers.html" /> 
+    <link rel="prev" title="Implementing a modulo counter" href="modulo-counting.html" /> 
 
 <script>
 function setheight() {
@@ -53,44 +52,40 @@ document.getElementById('d1').style.height=h2 + "px";
         <div class="bodywrapper">
           <div class="body">
 <div style="float: right">
-<a href="extra-registers.html"
+<a href="modulo-counting.html"
                         title="previous chapter"> &lt&lt </a>
-<a href="copy-and-compute.html"
-                        title="next chapter"> &gt&gt </a></p>
 </div>
 
             
-  <div class="section" id="implementing-a-modulo-counter">
-<h1>Implementing a modulo counter<a class="headerlink" href="#implementing-a-modulo-counter" title="Permalink to this headline">¶</a></h1>
-<p>When you need a counter that counts modulo N, this can be implemented using
-an LSUB instruction. An LSUB subtracts two numbers and a &#8220;borrow&#8221;, and
-produces the result and a borrow. Supply as input parameters:</p>
-<ul class="simple">
-<li>A zero borrow (any address that points to a word or short will do)</li>
-<li>The number N</li>
-<li>The value of the counter</li>
-</ul>
-<p>The LSUB instruction produces</p>
-<ul class="simple">
-<li>An outgoing borrow - if this is &#8220;zero&#8221; then the counter has wrapped</li>
-<li>The wrapped counter, only use this if the borrow is zero.</li>
-</ul>
-<p>This implements both the comparison and the computation of the wrapped
-counter, provided that the counter is between N and 2N-1.</p>
-<p>An example program:</p>
-<div class="highlight-none"><div class="highlight"><pre>  ldc    r1, 0x9842            // Zero borrow, any even number will do
-  ldc    r5, 10                // Value of N
-  ldc    r3, 0                 // The counter
-
-  ...
-  add    r3, r3, 3
-  lsub   r0, r2, r3, r5, r1
-  bt     r0, noWrap
-  or     r3, r2, r2            // Copy r2 to r3; can be avoided by
-noWrap:                        // judicious register renaming
-  ...
+  <div class="section" id="copying-a-register-simultaneous-with-a-computation">
+<h1>Copying a register simultaneous with a computation<a class="headerlink" href="#copying-a-register-simultaneous-with-a-computation" title="Permalink to this headline">¶</a></h1>
+<p>The <tt class="docutils literal"><span class="pre">LMUL</span></tt> instruction can at the same time copy a value into a register,
+and compute with it. This is useful for sequences such as:</p>
+<div class="highlight-none"><div class="highlight"><pre>port :&gt; value @ newTime;
+diff = newTime - oldTime;
+newTime = oldTime;
 </pre></div>
 </div>
+<p>An <tt class="docutils literal"><span class="pre">LMUL</span></tt> instruction performs an  <em>unsigned</em> multiplication and two
+additions, yielding a 64-bit unsigned result value:</p>
+<div class="highlight-none"><div class="highlight"><pre>d : e = a * b + c + d
+</pre></div>
+</div>
+<p>If we choose <tt class="docutils literal"><span class="pre">b</span></tt> to be a small negative number, then this is results in:</p>
+<div class="highlight-none"><div class="highlight"><pre>d : e = a * (2^32 + b) + c + d     // Computation is unsigned
+      = a * 2^32 + a * b + c + d
+</pre></div>
+</div>
+<p>If we force <tt class="docutils literal"><span class="pre">a</span> <span class="pre">*</span> <span class="pre">b</span> <span class="pre">+</span> <span class="pre">c</span> <span class="pre">+</span> <span class="pre">d</span></tt> to be positive, then <tt class="docutils literal"><span class="pre">a</span></tt> will be copied
+into <tt class="docutils literal"><span class="pre">d</span></tt>, and <tt class="docutils literal"><span class="pre">a</span> <span class="pre">*</span> <span class="pre">b</span> <span class="pre">+</span> <span class="pre">c</span> <span class="pre">+</span> <span class="pre">d</span></tt> will be calculated into <tt class="docutils literal"><span class="pre">e</span></tt>. We can
+force the answer to be positive by loading <tt class="docutils literal"><span class="pre">d</span></tt> with an appropriate
+offset, for example <tt class="docutils literal"><span class="pre">0x10000</span></tt> for our example (since port timers are
+16 bits only). Hence, the above example code can be written as:</p>
+<div class="highlight-none"><div class="highlight"><pre>port :&gt; value @ newTime;
+{oldTime,diff} = lmul(-1, newTime, oldTime, 0x10000);
+</pre></div>
+</div>
+<p>Will perform the copy and subtraction simultaneously.</p>
 </div>
 
 
@@ -110,8 +105,8 @@ noWrap:                        // judicious register renaming
 <li class="toctree-l1 current"><a class="reference internal" href="assembly-index.html">Assembly Tips and Tricks</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="clearing-registers.html">Clearing two registers simultaneously</a></li>
 <li class="toctree-l2"><a class="reference internal" href="extra-registers.html">Using extra registers</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="">Implementing a modulo counter</a></li>
-<li class="toctree-l2"><a class="reference internal" href="copy-and-compute.html">Copying a register simultaneous with a computation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="modulo-counting.html">Implementing a modulo counter</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="">Copying a register simultaneous with a computation</a></li>
 </ul>
 </li>
 </ul>
