@@ -111,11 +111,11 @@ unsigned h, l = 0, x;
 while(...) {
    h = 0;
    i :&gt; x;
-   {h,l} = macu(h,l,x,y);
+   {h,l} = mac(h,l,x,y);
    o &lt;: l;
    l = 0;
    i :&gt; x;
-   {l,h} = macu(l,h,x,y);
+   {l,h} = mac(l,h,x,y);
    o &lt;: h;
 }
 </pre></div>
