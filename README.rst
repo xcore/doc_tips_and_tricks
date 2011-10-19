@@ -16,6 +16,11 @@ the XCore XS1 (eg CRC, LMUL) to, possibly, unexpected uses.
 
 Read it properly on http://xcore.github.com/doc_tips_and_tricks
 
+To do
+=====
+
+* Move all source code from the document into source files and make sure it compiles and gives expected output
+
 Required Repositories
 ================
 
