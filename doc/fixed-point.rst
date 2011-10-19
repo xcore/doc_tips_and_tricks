@@ -132,7 +132,7 @@ An example to illustrate formats and conversions is shown below::
   a = a - c;         // a is in 24.8 format
   {h,l} = macs(a, b, 0, 0);    // {h,l} is in 40.24 format, ie, l is
                                // in 8.24 and h is in 40.-8
-  if (sext(h, 8) == 8) {
+  if (sext(h, 8) == h) {
       a = h << 24 | l >> 8; // this is in 16.16 format once again.
   } 
   if (h > 0) {
@@ -149,7 +149,7 @@ A more realistic example implements a FIR filter as follows::
       for(int i = 0; i < 16; i++) {
           {h,l} = macs(inp[i], filter[i], h, l);
       }
-      if (sext(h, 8) == 8) {
+      if (sext(h, 8) == h) {
           return h << 8 | l >> 24;
       }
       if (h > 0) {
