@@ -55,11 +55,11 @@ and outputs realigned words to an output channel/port is shown below::
  while(...) {
     h = 0;
     i :> x;
-    {h,l} = macu(h,l,x,y);
+    {h,l} = mac(h,l,x,y);
     o <: l;
     l = 0;
     i :> x;
-    {l,h} = macu(l,h,x,y);
+    {l,h} = mac(l,h,x,y);
     o <: h;
  }
 

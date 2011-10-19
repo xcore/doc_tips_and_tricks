@@ -114,7 +114,7 @@ follows::
 
   // adds h:l to a*b leaves result in h:l and flags in overflow:
   int overflow, x = 0;
-  {x,l} = macu(a, b, x, l)
+  {x,l} = mac(a, b, x, l)
   asm("ladd %0, %1, %2, %3, %4" : "=r"(overflow), "=r"(h) : "r"(x), "r"(h), "r"(0))
 
 
