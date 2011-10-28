@@ -10,3 +10,4 @@ Methods for anything numeric: random numbers, fixed point arithmetic
     fixed-point
     sqrt-log
     div-mod
+    long-multiply

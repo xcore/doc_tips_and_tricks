@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Division and modulo &mdash; Tips and tricks v0v1 documentation</title>
+    <title>Multiplying a double word with a word &mdash; Tips and tricks v0v1 documentation</title>
     <link rel="stylesheet" href="_static/xdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
@@ -25,8 +25,8 @@
     <script type="text/javascript" src="_static/xcomment.js"></script>
     <link rel="top" title="Tips and tricks v0v1 documentation" href="index.html" />
     <link rel="up" title="Numeric processing" href="numeric-index.html" />
-    <link rel="next" title="Multiplying a double word with a word" href="long-multiply.html" />
-    <link rel="prev" title="Computing a logarithm or sqrt" href="sqrt-log.html" /> 
+    <link rel="next" title="Hash tables" href="hash-tables.html" />
+    <link rel="prev" title="Division and modulo" href="div-mod.html" /> 
 
 <script>
 function setheight() {
@@ -53,43 +53,26 @@ document.getElementById('d1').style.height=h2 + "px";
         <div class="bodywrapper">
           <div class="body">
 <div style="float: right">
-<a href="sqrt-log.html"
+<a href="div-mod.html"
                         title="previous chapter"> &lt&lt </a>
-<a href="long-multiply.html"
+<a href="hash-tables.html"
                         title="next chapter"> &gt&gt </a></p>
 </div>
 
             
-  <div class="section" id="division-and-modulo">
-<h1>Division and modulo<a class="headerlink" href="#division-and-modulo" title="Permalink to this headline">¶</a></h1>
-<p>The division instruction on the XS1 shares a divider between all threads,
-and takes a number of thread cycles (32) to complete. Division is hence
-slower than any other arithmetic instruction; and when multiple threads
-perform divisions at the same time, they will slow each other down; a
-division may take 32 thread cycles to complete if a thread is unlucky.</p>
-<p>Sometimes divisions can be avoided; using well known methods:</p>
-<dl class="docutils">
-<dt>Use a shift operation</dt>
-<dd>A right shift of <em>n</em> bits is
-equivalent to unsigned division by <em>2^n</em>. For negative numbers, one has
-to be careful that a right shift rounds towards minus infinity.</dd>
-<dt>Multiply by the inverse</dt>
-<dd>Sometimes the inverse is easily
-calculated, for example when dividing by a constant. In this case, one
-can, at compile time, compute the inverse (<em>1/n</em>) and then at run time
-multiply by this number. For an integer division, the inverse is always
-less than one, hence the number to store is <em>2^32/n</em> which is then
-multiplied using one of the long multiply instructions (<tt class="docutils literal"><span class="pre">LMUL</span></tt>, <tt class="docutils literal"><span class="pre">MACCS</span></tt>).
-This will compute the result of the division in the most significant 32
-bits, although rounding may not be precise.</dd>
-</dl>
-<p>See Hacker&#8217;s delight <a class="reference internal" href="sqrt-log.html#warrenjr"><span>[warrenjr]</span></a> for a detailed discussion on this subject</p>
-<table class="docutils citation" frame="void" id="warrenjr" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id1">[warrenjr]</a></td><td>Henry S Warren, <em>Hacker&#8217;s Delight</em>, ISBN 0201914654</td></tr>
-</tbody>
-</table>
+  <div class="section" id="multiplying-a-double-word-with-a-word">
+<h1>Multiplying a double word with a word<a class="headerlink" href="#multiplying-a-double-word-with-a-word" title="Permalink to this headline">¶</a></h1>
+<p>If you want to compute <tt class="docutils literal"><span class="pre">c</span> <span class="pre">=</span> <span class="pre">a</span> <span class="pre">*</span> <span class="pre">b</span></tt> where <tt class="docutils literal"><span class="pre">b</span></tt> and <tt class="docutils literal"><span class="pre">c</span></tt> are double word numbers
+and <tt class="docutils literal"><span class="pre">a</span></tt> is a single word number, then you can do that as follows:</p>
+<div class="highlight-none"><div class="highlight"><pre>unsigned a;
+unsigned hb, lb;
+unsigned hc, lc;
+
+{hc,lc} = macs(lb, a, hb*a, 0)
+</pre></div>
+</div>
+<p>Where <tt class="docutils literal"><span class="pre">{hb,lb}</span></tt> are the high and the low word of <tt class="docutils literal"><span class="pre">b</span></tt>, and
+<tt class="docutils literal"><span class="pre">{hc,lc}</span></tt> are the high and the low word of <tt class="docutils literal"><span class="pre">c</span></tt>.</p>
 </div>
 
 
@@ -106,8 +89,8 @@ bits, although rounding may not be precise.</dd>
 <li class="toctree-l2"><a class="reference internal" href="pseudo-random-numbers.html">Pseudo Random Numbers</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fixed-point.html">Performing fixed point arithmetic</a></li>
 <li class="toctree-l2"><a class="reference internal" href="sqrt-log.html">Computing a logarithm or sqrt</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="">Division and modulo</a></li>
-<li class="toctree-l2"><a class="reference internal" href="long-multiply.html">Multiplying a double word with a word</a></li>
+<li class="toctree-l2"><a class="reference internal" href="div-mod.html">Division and modulo</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="">Multiplying a double word with a word</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="hash-tables.html">Hash tables</a></li>

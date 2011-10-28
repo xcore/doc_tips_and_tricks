@@ -25,7 +25,7 @@
     <script type="text/javascript" src="_static/xcomment.js"></script>
     <link rel="top" title="Tips and tricks v0v1 documentation" href="index.html" />
     <link rel="next" title="Building short FIFOs" href="short-fifo.html" />
-    <link rel="prev" title="Division and modulo" href="div-mod.html" /> 
+    <link rel="prev" title="Multiplying a double word with a word" href="long-multiply.html" /> 
 
 <script>
 function setheight() {
@@ -52,7 +52,7 @@ document.getElementById('d1').style.height=h2 + "px";
         <div class="bodywrapper">
           <div class="body">
 <div style="float: right">
-<a href="div-mod.html"
+<a href="long-multiply.html"
                         title="previous chapter"> &lt&lt </a>
 <a href="short-fifo.html"
                         title="next chapter"> &gt&gt </a></p>
@@ -64,7 +64,7 @@ document.getElementById('d1').style.height=h2 + "px";
 <p>A hash table is a well understood data structure to store data. Typically,
 a hash table stores pairs <em>(key,value)</em>, and the objective is to use little
 memory to store those but with a fast access mechanism. Hash tables are
-described in detail by Knuth <a class="reference internal" href="#knuth3">[knuth3]</a>.</p>
+described in detail by Knuth <a class="reference internal" href="#knuth3"><span>[knuth3]</span></a>.</p>
 <p>A good hash function is critical to making efficient hash tables. Good hash
 functions can be expensive to compute, but functions that are cheap to
 compute may have poor hashing qualities.</p>
@@ -90,8 +90,8 @@ addressed. For a polynomial of length <em>n</em>, the hash table will have
 <em>2^n</em> entries. A polynomial of length <em>n</em> will have <em>32-n</em> zero bits as
 its most significant bits, then a <em>1</em> bit, and then zero and 1 bits.</li>
 <li>The polynomial should have good spreading properties. We refer to
-Knuth for details <a class="reference internal" href="#knuth3">[knuth3]</a>. As a rule of thumb, primitive
-polynomials <a class="reference internal" href="#wikipedia-primitive-polynomial">[wikipedia-primitive-polynomial]</a> are good.</li>
+Knuth for details <a class="reference internal" href="#knuth3"><span>[knuth3]</span></a>. As a rule of thumb, primitive
+polynomials <a class="reference internal" href="#wikipedia-primitive-polynomial"><span>[wikipedia-primitive-polynomial]</span></a> are good.</li>
 </ul>
 <p>If all values that are to be stored are known at compile time, then the
 polynomial can be chosen to minimise the hashtable by performing an
@@ -105,7 +105,7 @@ exhaustive search over all possible polynomials.</p>
 <table class="docutils citation" frame="void" id="wikipedia-primitive-polynomial" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id3">[wikipedia-primitive-polynomial]</a></td><td><em>Primitive Polynomial pages on Wikipedia</em> <a class="reference external" href="http://en.wikipedia.org/wiki/Primitive_polynomial">http://en.wikipedia.org/wiki/Primitive_polynomial</a></td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id3">[wikipedia-primitive-polynomial]</a></td><td><em>Primitive Polynomial pages on Wikipedia</em> <a class="reference external" href="http://en.wikipedia.org/wiki/Primitive_polynomial"><span>http://en.wikipedia.org/wiki/Primitive_polynomial</span></a></td></tr>
 </tbody>
 </table>
 </div>
