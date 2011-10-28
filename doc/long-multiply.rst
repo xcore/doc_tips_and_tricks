@@ -10,5 +10,6 @@ and ``a`` is a single word number, then you can do that as follows::
 
   {hc,lc} = macs(lb, a, hb*a, 0)
 
-Where ``{hb,lb}`` are the high and the low word of ``b``
+Where ``{hb,lb}`` are the high and the low word of ``b``, and 
+``{hc,lc}`` are the high and the low word of ``c``.
 
