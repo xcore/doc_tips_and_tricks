@@ -59,7 +59,7 @@ times), it also leads to registers being spilled to the stack.
 
 
 Code listings for threads
---------------
+-------------------------
 
 All three code segments assume the following global definitions::
 

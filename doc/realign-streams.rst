@@ -107,6 +107,3 @@ thread for processing.
 
 
 
-.. [warrenjr] Henry S Warren, *Hacker's Delight*, ISBN 0201914654
-
-.. [xc-en-ebook] Douglas Watt, *Programming XC on XMOS Devices*, http://www.xmos.com/published/xc_en
