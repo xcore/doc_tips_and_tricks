@@ -41,18 +41,18 @@ in digitial electronics. In this implementation, the remainder is commonly
 shifted from left to right, and the right most bit (the first bit of data
 that came in) is XORed in in the bit locations marked by the CRC.
 
-The above example would progress as follows:
+The above example would progress as follows::
 
   Remainder  r[0..3]                  1011
-  XOR r[3] onto r[2] and r[3]       : 1000
+  XOR r[3] onto r[2] and r[3]:        1000
   Shift right, shifting next data in: 0100
-  XOR r[3] onto r[2] and r[3]       : 0100
+  XOR r[3] onto r[2] and r[3]:        0100
   Shift right, shifting next data in: 0010  
-  XOR r[3] onto r[2] and r[3]       : 0010
+  XOR r[3] onto r[2] and r[3]:        0010
   Shift right, shifting next data in: 1001
-  XOR r[3] onto r[2] and r[3]       : 1010
+  XOR r[3] onto r[2] and r[3]:        1010
   Shift right, shifting next data in: 1101
-  XOR r[3] onto r[2] and r[3]       : 1110
+  XOR r[3] onto r[2] and r[3]:        1110
   Shift right, shifting next data in: 0111
 
 Note that the answer is the same, but that the bits are written down in a
