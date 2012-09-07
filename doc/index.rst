@@ -15,6 +15,7 @@ the XCore XS1 (eg CRC, LMUL) to, possibly, unexpected uses.
     serial-index.rst
     numeric-index.rst
     hash-tables
+    crc.rst
     short-fifo
     threading-speedup
     assembly-index.rst
