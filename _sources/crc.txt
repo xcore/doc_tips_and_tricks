@@ -11,7 +11,7 @@ CRC mathematics
 
 A CRC is defined as the remainder of a division of two polynomials in GF-2.
 The simplest way to visualise a CRC is to use a long
-division~\cite{wikipedia-CRC}. Put the input string down at the top (first
+division [wikipedia-CRC]_. Put the input string down at the top (first
 bit on the left, last bit on the right), then start dividing. A division
 step is to perform an
 an XOR with the polynomial if the left-most bit is 1, making the left-most bit 0.
@@ -39,7 +39,7 @@ CRC using digital electronics
 
 Instead of using the mathematical description, many protocols specify the
 CRC as a linear-feedback-shift-register, which is the common implementation
-in digitial electronics. In this implementation, the remainder is commonly
+in digital electronics. In this implementation, the remainder is commonly
 shifted from left to right, and the right most bit (the first bit of data
 that came in) is XORed in in the bit locations marked by the CRC.
 
@@ -105,7 +105,7 @@ The initial value
 In the examples above, we have started the computation of the remainder
 with the first few data bits already in place. Normally, a CRC computation
 would start with an initial value, such as '0', and then the CRC
-computatation takes place. on the data. The two most common starting
+computation takes place. on the data. The two most common starting
 patterns are all zeroes, or all ones.
 
 When starting with four zeroes on our previous example, the first four
@@ -185,7 +185,7 @@ each word. This can be done with a MACCU as is shown in an earlier chapter
 of this document.
 
 Note that if the alignment of the final bit is not known in advance, then
-up to eight final bits will ahve to be folded in one at a time.
+up to eight final bits will have to be folded in one at a time.
 
 XS1 CRC instructions
 --------------------
@@ -199,3 +199,5 @@ The XMOS XS1 instructions has two instructions to compute a CRC.
   a current remainder, and 8 input bits. In addition, it shifts 8 bits outs
   of the data word, enabling multiple CRC8 instructions to be chained to
   fold 16 or 24 bits into the CRC.
+
+.. [wikipedia-CRC] *CRC pages on Wikipedia* http://en.wikipedia.org/wiki/Cyclic_redundancy_check
