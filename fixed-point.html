@@ -6,13 +6,13 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Performing fixed point arithmetic &mdash; Tips and tricks v0v1 documentation</title>
+    <title>Performing fixed point arithmetic &mdash; Tips and Tricks  documentation</title>
     <link rel="stylesheet" href="_static/xdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '0v1',
+        VERSION:     '',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -21,9 +21,8 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="http://mathjax.connectmv.com/MathJax.js"></script>
     <script type="text/javascript" src="_static/xcomment.js"></script>
-    <link rel="top" title="Tips and tricks v0v1 documentation" href="index.html" />
+    <link rel="top" title="Tips and Tricks  documentation" href="index.html" />
     <link rel="up" title="Numeric processing" href="numeric-index.html" />
     <link rel="next" title="Computing a logarithm or sqrt" href="sqrt-log.html" />
     <link rel="prev" title="Pseudo Random Numbers" href="pseudo-random-numbers.html" /> 
@@ -73,23 +72,37 @@ place. Both signed and unsigned fixed point numbers are supported.</p>
 <h3>Representation<a class="headerlink" href="#representation" title="Permalink to this headline">¶</a></h3>
 <p>Unsigned fixed point numbers are stored as a 32-bit number. The value of
 the fixed point number is the integer interpretation of the 32-bit value
-multiplied by an exponent <span class="math">\(2^e\)</span> where <span class="math">\(e\)</span> is a user-defined
+multiplied by an exponent <math xmlns="http://www.w3.org/1998/Math/MathML">
+<mrow><msup><mn>2</mn><mi>e</mi></msup></mrow></math> where <math xmlns="http://www.w3.org/1998/Math/MathML">
+<mrow><mi>e</mi></mrow></math> is a user-defined
 fixed number, usually between -32 and 0 inclusive. For example, if
-<span class="math">\(e\)</span> is chosen to be -32, then numbers between 0 and 1 (exclusive) in
-steps of approximately <span class="math">\(2.3 \cdot 10^{-10}\)</span> can be stored; and if <span class="math">\(e\)</span>
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+<mrow><mi>e</mi></mrow></math> is chosen to be -32, then numbers between 0 and 1 (exclusive) in
+steps of approximately <math xmlns="http://www.w3.org/1998/Math/MathML">
+<mrow><mn>2</mn><mo>.</mo><mn>3</mn><mo>⋅</mo><mn>1</mn><msup><mn>0</mn>
+<mrow><mo>-</mo><mn>1</mn><mn>0</mn></mrow></msup></mrow></math> can be stored; and if <math xmlns="http://www.w3.org/1998/Math/MathML">
+<mrow><mi>e</mi></mrow></math>
 is chosen to be -10, then numbers between 0 and 4,194,304 in steps of
 0.0009765625 can be represented.</p>
 <p>Signed fixed point numbers are stored in two&#8217;s complement as a 32-bit
 number. The value of the fixed point number is the two&#8217;s complement
-interpretation of the bit pattern multiplied by an exponent <span class="math">\(2^e\)</span> where <span class="math">\(e\)</span> is a
+interpretation of the bit pattern multiplied by an exponent <math xmlns="http://www.w3.org/1998/Math/MathML">
+<mrow><msup><mn>2</mn><mi>e</mi></msup></mrow></math> where <math xmlns="http://www.w3.org/1998/Math/MathML">
+<mrow><mi>e</mi></mrow></math> is a
 user-defined fixed number, usually between -31 and 0 inclusive. For
-example, if <span class="math">\(e\)</span> is chosen to be -31, then numbers between -1 and 1
-(exclusive) in steps of approximately <span class="math">\(4.6 \cdot 10^{-10}\)</span> can be stored; and
-if <span class="math">\(e\)</span> is chosen to be -10, then numbers between -2,097,152 and
+example, if <math xmlns="http://www.w3.org/1998/Math/MathML">
+<mrow><mi>e</mi></mrow></math> is chosen to be -31, then numbers between -1 and 1
+(exclusive) in steps of approximately <math xmlns="http://www.w3.org/1998/Math/MathML">
+<mrow><mn>4</mn><mo>.</mo><mn>6</mn><mo>⋅</mo><mn>1</mn><msup><mn>0</mn>
+<mrow><mo>-</mo><mn>1</mn><mn>0</mn></mrow></msup></mrow></math> can be stored; and
+if <math xmlns="http://www.w3.org/1998/Math/MathML">
+<mrow><mi>e</mi></mrow></math> is chosen to be -10, then numbers between -2,097,152 and
 2,097,151 in steps of 0.0009765625 can be represented.</p>
 <p>We use the notation X.Y to denote the precision, where X is the number of
 bits before the binary point, and Y is the number of bits after the binary
-point. Hence, <span class="math">\(e=-Y\)</span>, and <span class="math">\(X+Y=32\)</span>. For example, the value one
+point. Hence, <math xmlns="http://www.w3.org/1998/Math/MathML">
+<mrow><mi>e</mi><mo>=</mo><mo>-</mo><mi>Y</mi></mrow></math>, and <math xmlns="http://www.w3.org/1998/Math/MathML">
+<mrow><mi>X</mi><mo>+</mo><mi>Y</mi><mo>=</mo><mn>3</mn><mn>2</mn></mrow></math>. For example, the value one
 is represented in 8.24 by bit pattern <tt class="docutils literal"><span class="pre">0x01000000</span></tt>, and in 16.16 by bit
 pattern <tt class="docutils literal"><span class="pre">0x00010000</span></tt>.</p>
 <p>Each variable in a program has at any stage an exponent associated with it.
@@ -246,7 +259,7 @@ or-instructions:</p>
       </div>
       <div class="sphinxsidebar" id='d2'>
         <div class="sphinxsidebarwrapper">
-<h3><a href="index.html">Tips and tricks (0v1)</a></h3>
+<h3><a href="index.html">Tips and Tricks</a></h3>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="serial-index.html">Serial and Stream processing</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="numeric-index.html">Numeric processing</a><ul class="current">
@@ -269,6 +282,7 @@ or-instructions:</p>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="hash-tables.html">Hash tables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="crc.html">Computing and Checking CRCs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="short-fifo.html">Building short FIFOs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="threading-speedup.html">Using multiple threads for super linear speedup</a></li>
 <li class="toctree-l1"><a class="reference internal" href="assembly-index.html">Assembly Tips and Tricks</a></li>

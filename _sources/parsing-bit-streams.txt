@@ -18,7 +18,7 @@ The latter can be a problem if the table is not very dense. For example, if
 ``p`` is an 8-bit port (or an 8-bit buffered 1-bit port), it will
 result in values between 0 and 255, but only one or two of these values may
 be legal in any one state. In this case, a large part of the table will be
-empty, or filled with ``ERROR'' states.
+empty, or filled with ``ERROR`` states.
 
 There are two other methods to parse a bit stream that avoid the above two
 problems; a faster method that encodes the state in the code space, and a
@@ -87,7 +87,7 @@ jumping to a state ``S0100``::
 Obviously, extra instructions need to be added to perform operations, and
 the state space needs to be pruned to avoid unreachable states. For
 example, one may always expect at least three equal bits in a row, eg
-patterns such as ``00100'' are impossible. In this case many of the above
+patterns such as ``00100`` are impossible. In this case many of the above
 states are illegal and can be covered by a single ERROR state.
 
 Note that the BRU instruction jumps over *n* 16-bit instructions, and that all

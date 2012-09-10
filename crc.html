@@ -1,0 +1,297 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Computing and Checking CRCs &mdash; Tips and Tricks  documentation</title>
+    <link rel="stylesheet" href="_static/xdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/xcomment.js"></script>
+    <link rel="top" title="Tips and Tricks  documentation" href="index.html" />
+    <link rel="next" title="Building short FIFOs" href="short-fifo.html" />
+    <link rel="prev" title="Hash tables" href="hash-tables.html" /> 
+
+<script>
+function setheight() {
+h1 = document.getElementById('d1').style.height;
+h2 = document.getElementById('d2').style.height;
+
+if (parseInt(h1) > parseInt(h2)) {
+document.getElementById('d2').style.height=h1 + "px";
+}
+else {
+document.getElementById('d1').style.height=h2 + "px";
+}
+
+}
+</script>
+</head>
+
+<body onload="setheight();">
+
+  
+
+    <div class="document" id='d1'>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+<div style="float: right">
+<a href="hash-tables.html"
+                        title="previous chapter"> &lt&lt </a>
+<a href="short-fifo.html"
+                        title="next chapter"> &gt&gt </a></p>
+</div>
+
+            
+  <div class="section" id="computing-and-checking-crcs">
+<h1>Computing and Checking CRCs<a class="headerlink" href="#computing-and-checking-crcs" title="Permalink to this headline">¶</a></h1>
+<p>Cycling Redundancy Checks (CRCs) are a common form of checking for the
+integrity of data on transmission or storage. The XMOS XS1 instruction set
+has dedicated instructions for computing and checking CRCs. In this section
+we discuss how to use the CRC instructions.</p>
+<div class="section" id="crc-mathematics">
+<h2>CRC mathematics<a class="headerlink" href="#crc-mathematics" title="Permalink to this headline">¶</a></h2>
+<p>A CRC is defined as the remainder of a division of two polynomials in GF-2.
+The simplest way to visualise a CRC is to use a long
+division~cite{wikipedia-CRC}. Put the input string down at the top (first
+bit on the left, last bit on the right), then start dividing. A division
+step is to perform an
+an XOR with the polynomial if the left-most bit is 1, making the left-most bit 0.
+Then remove the left-most bit, and repeat.
+The following example divides 110100110 by
+1100 using XOR arithmetic (GF-2), resulting in a remainder of 1110:</p>
+<div class="highlight-none"><div class="highlight"><pre>110100110 &lt;--- Input
+1100 .  . &lt;--- XOR with divisor (4 Bits)
+ 0010.  .
+ 0000.  .
+  0100  .
+  0000  .
+   1001 .
+   1100 .
+    1011.
+    1100.
+     1110&lt;- remainder
+</pre></div>
+</div>
+<p>When all bits of input have been shifted in, the result is guaranteed four
+bits; these four bits are the CRC.</p>
+</div>
+<div class="section" id="crc-using-digital-electronics">
+<h2>CRC using digital electronics<a class="headerlink" href="#crc-using-digital-electronics" title="Permalink to this headline">¶</a></h2>
+<p>Instead of using the mathematical description, many protocols specify the
+CRC as a linear-feedback-shift-register, which is the common implementation
+in digitial electronics. In this implementation, the remainder is commonly
+shifted from left to right, and the right most bit (the first bit of data
+that came in) is XORed in in the bit locations marked by the CRC.</p>
+<p>The above example uses a polynomial of 1100, which means that the bit 3 has
+to be XORed over bits 3 and 2. The computation of the remainder would
+progress as follows:</p>
+<div class="highlight-none"><div class="highlight"><pre>Initial remainder r[0..3]           1011
+XOR r[3] onto r[2] and r[3]:        1000
+Shift right, shifting next data in: 0100
+XOR r[3] onto r[2] and r[3]:        0100
+Shift right, shifting next data in: 0010
+XOR r[3] onto r[2] and r[3]:        0010
+Shift right, shifting next data in: 1001
+XOR r[3] onto r[2] and r[3]:        1010
+Shift right, shifting next data in: 1101
+XOR r[3] onto r[2] and r[3]:        1110
+Shift right, shifting next data in: 0111
+</pre></div>
+</div>
+<p>Note that the answer is the same, and that the bits are written down in a
+reverse order.</p>
+</div>
+<div class="section" id="the-polynomial">
+<h2>The polynomial<a class="headerlink" href="#the-polynomial" title="Permalink to this headline">¶</a></h2>
+<p>The CRC above uses the polynomial x^0 + x^1 + x^4; terms 0, 1, and 4 are
+used, which can be represented as 11001 (with the left most bit denoting the
+presence of x^0), or 10011 (with the rightmost bit denoting the presence of
+x^0).</p>
+<p>For a polynomial of order N, the term x^N must always be present, and
+hence when specifying a polynomial, this bit is not specified. Hence, the
+polynomial x^0 + x^1 + x^4 is known as either 1100 or 0011, where the former
+is the <em>reverse</em> representation, and the latter is the <em>normal</em>
+representation. For example, the polynomial used for Ethernet is x^32 +
+x^26 + x^23 + x^22 + x^16 + x^12 + x^11 + x^10 + x^8 + x^7 + x^5 + x^4 +
+x^2 + x^1 + x^0, or (1) 0000 0100 1100 0001 0001 1101 1011 0111, which is
+0x04C11DB7 in normal representation, or 0xEDB88320 in reverse notation.</p>
+<p>When using the XMOS XS1 instructions, you should always specify your
+polynomial in reverse order (eg, 0xEDB88320 for Ethernet). The length of
+the polynomial is implicit in the polynomial. (the term x^0 is always part
+of the polynomial)</p>
+</div>
+<div class="section" id="bit-ordering">
+<h2>Bit ordering<a class="headerlink" href="#bit-ordering" title="Permalink to this headline">¶</a></h2>
+<p>In order to efficiently compute a CRC, the XMOS XS1 processor will fold 8
+or 32 bits into the CRC at a time. The CRC8 instruction will fold in 8 bits
+(specified with the &#8216;first&#8217; bit in bit 0, and the last bit in bit 7), and
+folds them in. The CRC32 instruction will fold in 32 bits starting with bit
+0, all the way to bit 31.</p>
+<p>If the bit ordering of data stored in memory or data coming from your input
+stream is different, then the BITREV and BYTEREV instructions can be used
+to alter the order. BITREV will swap all bits form left to right. BYTEREV
+swaps the byte in a word. A combination of the two can swap all bits in a
+byte.</p>
+</div>
+<div class="section" id="the-initial-value">
+<h2>The initial value<a class="headerlink" href="#the-initial-value" title="Permalink to this headline">¶</a></h2>
+<p>In the examples above, we have started the computation of the remainder
+with the first few data bits already in place. Normally, a CRC computation
+would start with an initial value, such as &#8216;0&#8217;, and then the CRC
+computatation takes place. on the data. The two most common starting
+patterns are all zeroes, or all ones.</p>
+<p>When starting with four zeroes on our previous example, the first four
+operations will not do anything, until the first four data bits are shifted
+in:</p>
+<div class="highlight-none"><div class="highlight"><pre>0000110100110 &lt;--- Input
+0000   . &lt;--- XOR with divisor (4 Bits)
+ 0001  .
+ 0000  .
+  0011 .
+  0000 .
+   0110.
+   0000.
+    1101
+    etc.
+</pre></div>
+</div>
+<p>Hence, if the starting value is all zeroes, then we can simply omit this, and
+start with the first N bits, where N is the order of the polynomial.
+Indeed, any zero bits at the beginning of the data stream do not contribute
+to the CRC. This is why other standards specify that the initial value
+should be all ones:</p>
+<div class="highlight-none"><div class="highlight"><pre>1111110100110 &lt;--- Input
+1100   . &lt;--- XOR with divisor (4 Bits)
+ 0111  .
+ 0000  .
+  1111 .
+  1100 .
+   0110.
+   0000.
+    1101
+    1100
+    etc.
+</pre></div>
+</div>
+<p>Note that the pattern of applying XOR or not is <em>input data independent</em> in the
+first four steps. In the case of the polynomial shown here (1100), the XOR
+happens in the first and third step. Hence, the data is XORed with all zeroes:</p>
+<div class="highlight-none"><div class="highlight"><pre>1111ABCD
+1100
+ 0000
+  1100
+   0000
+--------- XOR
+0000ABCD
+</pre></div>
+</div>
+<p>Hence, the first step can be skipped. For all polynomials the first step
+will comprise an XOR with some constant value. In the case of the Ethernet
+polynomial, the first step happens to be an XOR with all ones, which is
+simply inverting the first dataword.</p>
+<p>For any start value, the first steps are data independent, and a constant
+XOR value can be computed.</p>
+</div>
+<div class="section" id="the-crc-that-is-transmitted">
+<h2>The CRC that is transmitted<a class="headerlink" href="#the-crc-that-is-transmitted" title="Permalink to this headline">¶</a></h2>
+<p>The final CRC of a polynomial of order N is N bits, and these are either
+transmitted plain, or they may have to be inverted.</p>
+</div>
+<div class="section" id="computing-a-crc-over-an-odd-number-of-bits">
+<h2>Computing a CRC over an odd number of bits<a class="headerlink" href="#computing-a-crc-over-an-odd-number-of-bits" title="Permalink to this headline">¶</a></h2>
+<p>Many CRCs are computed over a bit-stream which is a whole number of bytes
+long. In this case, the CRC32 instruction can be used on all words of data
+until there are 0, 1, 2, or 3 bytes left, whereupon a CRC8 instruction is
+applied 0, 1, 2, or 3 times.</p>
+<p>There are cases where the number of bits is not a multiple of 8; for
+example in the case of a CAN packet. In that case the most efficient
+solution is to prepend an N-bit packet with <tt class="docutils literal"><span class="pre">32-(N</span> <span class="pre">mod</span> <span class="pre">32)</span></tt> zero bits.
+This will align the end of the packet onto a 32-bit boundary, meaning that
+CRC32 instructions can be used all the way. The only problem is to realign
+each word. This can be done with a MACCU as is shown in an earlier chapter
+of this document.</p>
+<p>Note that if the alignment of the final bit is not known in advance, then
+up to eight final bits will ahve to be folded in one at a time.</p>
+</div>
+<div class="section" id="xs1-crc-instructions">
+<h2>XS1 CRC instructions<a class="headerlink" href="#xs1-crc-instructions" title="Permalink to this headline">¶</a></h2>
+<p>The XMOS XS1 instructions has two instructions to compute a CRC.</p>
+<ul class="simple">
+<li>The CRC instruction computes a new remainder, given a polynomial and a
+a current remainder, and 32 input bits.</li>
+<li>The CRC8 instruction computes a new remainder, given a polynomial and a
+a current remainder, and 8 input bits. In addition, it shifts 8 bits outs
+of the data word, enabling multiple CRC8 instructions to be chained to
+fold 16 or 24 bits into the CRC.</li>
+</ul>
+</div>
+</div>
+
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" id='d2'>
+        <div class="sphinxsidebarwrapper">
+<h3><a href="index.html">Tips and Tricks</a></h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="serial-index.html">Serial and Stream processing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="numeric-index.html">Numeric processing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hash-tables.html">Hash tables</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">Computing and Checking CRCs</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#crc-mathematics">CRC mathematics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#crc-using-digital-electronics">CRC using digital electronics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#the-polynomial">The polynomial</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#bit-ordering">Bit ordering</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#the-initial-value">The initial value</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#the-crc-that-is-transmitted">The CRC that is transmitted</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#computing-a-crc-over-an-odd-number-of-bits">Computing a CRC over an odd number of bits</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#xs1-crc-instructions">XS1 CRC instructions</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="short-fifo.html">Building short FIFOs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="threading-speedup.html">Using multiple threads for super linear speedup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="assembly-index.html">Assembly Tips and Tricks</a></li>
+</ul>
+
+<div id="searchbox" style="display: none;margin-bottom: 10px;">
+  <h3>Search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+
+
+
+    <div class="footer">
+    </div>
+  </body>
+</html>
+
+
+

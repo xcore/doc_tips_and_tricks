@@ -6,13 +6,13 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Parsing bit streams &mdash; Tips and tricks v0v1 documentation</title>
+    <title>Parsing bit streams &mdash; Tips and Tricks  documentation</title>
     <link rel="stylesheet" href="_static/xdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '0v1',
+        VERSION:     '',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -21,9 +21,8 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="http://mathjax.connectmv.com/MathJax.js"></script>
     <script type="text/javascript" src="_static/xcomment.js"></script>
-    <link rel="top" title="Tips and tricks v0v1 documentation" href="index.html" />
+    <link rel="top" title="Tips and Tricks  documentation" href="index.html" />
     <link rel="up" title="Serial and Stream processing" href="serial-index.html" />
     <link rel="next" title="Generating bit streams" href="generating-bit-streams.html" />
     <link rel="prev" title="Realigning a data stream" href="realign-streams.html" /> 
@@ -79,7 +78,7 @@ maintains a state, and on every input a state transition is made:</p>
 <tt class="docutils literal"><span class="pre">p</span></tt> is an 8-bit port (or an 8-bit buffered 1-bit port), it will
 result in values between 0 and 255, but only one or two of these values may
 be legal in any one state. In this case, a large part of the table will be
-empty, or filled with <a href="#id1"><span class="problematic" id="id2">``</span></a>ERROR&#8217;&#8217; states.</p>
+empty, or filled with <tt class="docutils literal"><span class="pre">ERROR</span></tt> states.</p>
 <p>There are two other methods to parse a bit stream that avoid the above two
 problems; a faster method that encodes the state in the code space, and a
 memory efficient method that uses a hash table.</p>
@@ -144,7 +143,7 @@ S0100:
 <p>Obviously, extra instructions need to be added to perform operations, and
 the state space needs to be pruned to avoid unreachable states. For
 example, one may always expect at least three equal bits in a row, eg
-patterns such as <a href="#id3"><span class="problematic" id="id4">``</span></a>00100&#8217;&#8217; are impossible. In this case many of the above
+patterns such as <tt class="docutils literal"><span class="pre">00100</span></tt> are impossible. In this case many of the above
 states are illegal and can be covered by a single ERROR state.</p>
 <p>Note that the BRU instruction jumps over <em>n</em> 16-bit instructions, and that all
 entries in the jumptable should hence be short instructions. Hence they
@@ -243,7 +242,7 @@ used to count the number of trailing zeroes: <tt class="docutils literal"><span 
       </div>
       <div class="sphinxsidebar" id='d2'>
         <div class="sphinxsidebarwrapper">
-<h3><a href="index.html">Tips and tricks (0v1)</a></h3>
+<h3><a href="index.html">Tips and Tricks</a></h3>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="serial-index.html">Serial and Stream processing</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="realign-streams.html">Realigning a data stream</a></li>
@@ -259,6 +258,7 @@ used to count the number of trailing zeroes: <tt class="docutils literal"><span 
 </li>
 <li class="toctree-l1"><a class="reference internal" href="numeric-index.html">Numeric processing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hash-tables.html">Hash tables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="crc.html">Computing and Checking CRCs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="short-fifo.html">Building short FIFOs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="threading-speedup.html">Using multiple threads for super linear speedup</a></li>
 <li class="toctree-l1"><a class="reference internal" href="assembly-index.html">Assembly Tips and Tricks</a></li>

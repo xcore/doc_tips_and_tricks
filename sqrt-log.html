@@ -6,13 +6,13 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Computing a logarithm or sqrt &mdash; Tips and tricks v0v1 documentation</title>
+    <title>Computing a logarithm or sqrt &mdash; Tips and Tricks  documentation</title>
     <link rel="stylesheet" href="_static/xdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '0v1',
+        VERSION:     '',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -21,9 +21,8 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="http://mathjax.connectmv.com/MathJax.js"></script>
     <script type="text/javascript" src="_static/xcomment.js"></script>
-    <link rel="top" title="Tips and tricks v0v1 documentation" href="index.html" />
+    <link rel="top" title="Tips and Tricks  documentation" href="index.html" />
     <link rel="up" title="Numeric processing" href="numeric-index.html" />
     <link rel="next" title="Division and modulo" href="div-mod.html" />
     <link rel="prev" title="Performing fixed point arithmetic" href="fixed-point.html" /> 
@@ -64,13 +63,29 @@ document.getElementById('d1').style.height=h2 + "px";
 <h1>Computing a logarithm or sqrt<a class="headerlink" href="#computing-a-logarithm-or-sqrt" title="Permalink to this headline">¶</a></h1>
 <p>The XS1 has an instruction to count the number of leading zeroes of a bit
 pattern, <tt class="docutils literal"><span class="pre">clz()</span></tt>. This function can be used to efficiently
-estimate the logarithm of a number. Assuming <span class="math">\(x \not = 0\)</span>, then:</p>
-<div class="math">
-\[\lfloor \log_2 x \rfloor = bpw - 1 - clz(x)\]</div>
+estimate the logarithm of a number. Assuming <math xmlns="http://www.w3.org/1998/Math/MathML">
+<mrow><mi>x</mi><mo>≠</mo><mn>0</mn></mrow></math>, then:</p>
+<div>
+<math xmlns="http://www.w3.org/1998/Math/MathML" mode="display">
+<mtable>
+<mtr>
+<mtd><mi>f</mi><mi>l</mi><mi>o</mi><mi>o</mi><mi>r</mi><mo>(</mo><msub><mo>log</mo><mn>2</mn></msub><mi>x</mi><mo>)</mo><mo>=</mo><mi>b</mi><mi>p</mi><mi>w</mi><mo>-</mo><mn>1</mn><mo>-</mo><mi>c</mi><mi>l</mi><mi>z</mi><mo>(</mo><mi>x</mi><mo>)</mo></mtd></mtr></mtable></math>
+</div>
 <p>This logarithm can be used as a first estimate for a square root,
 since:</p>
-<div class="math">
-\[\sqrt{x} = x^{\frac{1}{2}} = 2^{\frac{\log_2 x}{2}}\]</div>
+<div>
+<math xmlns="http://www.w3.org/1998/Math/MathML" mode="display">
+<mtable>
+<mtr>
+<mtd><msqrt>
+<mrow><mi>x</mi></mrow></msqrt><mo>=</mo><msup><mi>x</mi>
+<mrow><mfrac>
+<mrow><mn>1</mn></mrow>
+<mrow><mn>2</mn></mrow></mfrac></mrow></msup><mo>=</mo><msup><mn>2</mn>
+<mrow><mfrac>
+<mrow><msub><mo>log</mo><mn>2</mn></msub><mi>x</mi></mrow>
+<mrow><mn>2</mn></mrow></mfrac></mrow></msup></mtd></mtr></mtable></math>
+</div>
 <p>This is all implemented using shift operations:</p>
 <div class="highlight-none"><div class="highlight"><pre>sqrtx = 1 &lt;&lt; ((31-clz(x))&gt;&gt;1);
 </pre></div>
@@ -88,14 +103,8 @@ will produce an accurate square root:</p>
 }
 </pre></div>
 </div>
-<p>See Hacker&#8217;s delight <a class="reference internal" href="#warrenjr"><span>[warrenjr]</span></a> and Paul Hsieh&#8217;s
+<p>See Hacker&#8217;s delight <a class="reference internal" href="div-mod.html#warrenjr"><span>[warrenjr]</span></a> and Paul Hsieh&#8217;s
 website <a class="reference internal" href="#sqrt-hsieh"><span>[sqrt-hsieh]</span></a> for an in-depth discussion and better methods.</p>
-<table class="docutils citation" frame="void" id="warrenjr" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id1">[warrenjr]</a></td><td>Henry S Warren, <em>Hacker&#8217;s Delight</em>, ISBN 0201914654</td></tr>
-</tbody>
-</table>
 <table class="docutils citation" frame="void" id="sqrt-hsieh" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
@@ -111,7 +120,7 @@ website <a class="reference internal" href="#sqrt-hsieh"><span>[sqrt-hsieh]</spa
       </div>
       <div class="sphinxsidebar" id='d2'>
         <div class="sphinxsidebarwrapper">
-<h3><a href="index.html">Tips and tricks (0v1)</a></h3>
+<h3><a href="index.html">Tips and Tricks</a></h3>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="serial-index.html">Serial and Stream processing</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="numeric-index.html">Numeric processing</a><ul class="current">
@@ -123,6 +132,7 @@ website <a class="reference internal" href="#sqrt-hsieh"><span>[sqrt-hsieh]</spa
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="hash-tables.html">Hash tables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="crc.html">Computing and Checking CRCs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="short-fifo.html">Building short FIFOs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="threading-speedup.html">Using multiple threads for super linear speedup</a></li>
 <li class="toctree-l1"><a class="reference internal" href="assembly-index.html">Assembly Tips and Tricks</a></li>

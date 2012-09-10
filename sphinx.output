@@ -1,0 +1,56 @@
+Running Sphinx v1.1.2
+Cannot find xmosconf
+loading pickled environment... not yet created
+building [html]: targets for 20 source files that are out of date
+updating environment: 20 added, 0 changed, 0 removed
+reading sources... [  5%] assembly-index
+reading sources... [ 10%] clearing-registers
+reading sources... [ 15%] copy-and-compute
+reading sources... [ 20%] crc
+reading sources... [ 25%] div-mod
+reading sources... [ 30%] extra-registers
+reading sources... [ 35%] fixed-point
+reading sources... [ 40%] generating-bit-streams
+reading sources... [ 45%] hash-tables
+reading sources... [ 50%] index
+reading sources... [ 55%] long-multiply
+reading sources... [ 60%] modulo-counting
+reading sources... [ 65%] numeric-index
+reading sources... [ 70%] parsing-bit-streams
+reading sources... [ 75%] pseudo-random-numbers
+reading sources... [ 80%] realign-streams
+reading sources... [ 85%] serial-index
+reading sources... [ 90%] short-fifo
+reading sources... [ 95%] sqrt-log
+reading sources... [100%] threading-speedup
+
+looking for now-outdated files... none found
+pickling environment... done
+checking consistency... done
+preparing documents... done
+writing output... [  5%] assembly-index
+writing output... [ 10%] clearing-registers
+writing output... [ 15%] copy-and-compute
+writing output... [ 20%] crc
+writing output... [ 25%] div-mod
+writing output... [ 30%] extra-registers
+writing output... [ 35%] fixed-point
+writing output... [ 40%] generating-bit-streams
+writing output... [ 45%] hash-tables
+writing output... [ 50%] index
+writing output... [ 55%] long-multiply
+writing output... [ 60%] modulo-counting
+writing output... [ 65%] numeric-index
+writing output... [ 70%] parsing-bit-streams
+writing output... [ 75%] pseudo-random-numbers
+writing output... [ 80%] realign-streams
+writing output... [ 85%] serial-index
+writing output... [ 90%] short-fifo
+writing output... [ 95%] sqrt-log
+writing output... [100%] threading-speedup
+
+writing additional files... genindex search
+copying static files... done
+dumping search index... done
+dumping object inventory... done
+build succeeded.

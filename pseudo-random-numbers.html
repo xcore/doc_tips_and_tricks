@@ -6,13 +6,13 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Pseudo Random Numbers &mdash; Tips and tricks v0v1 documentation</title>
+    <title>Pseudo Random Numbers &mdash; Tips and Tricks  documentation</title>
     <link rel="stylesheet" href="_static/xdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '0v1',
+        VERSION:     '',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -21,9 +21,8 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="http://mathjax.connectmv.com/MathJax.js"></script>
     <script type="text/javascript" src="_static/xcomment.js"></script>
-    <link rel="top" title="Tips and tricks v0v1 documentation" href="index.html" />
+    <link rel="top" title="Tips and Tricks  documentation" href="index.html" />
     <link rel="up" title="Numeric processing" href="numeric-index.html" />
     <link rel="next" title="Performing fixed point arithmetic" href="fixed-point.html" />
     <link rel="prev" title="Numeric processing" href="numeric-index.html" /> 
@@ -72,8 +71,13 @@ number generator that generates random values with a Triangular
 Probability Density Function (TPDF), used in, for example, audio dithering.</p>
 <p>Below is the code to generate those numbers. It generates a 32-bit pseudo random
 number, takes the bottom and top bits, sums those, and normalises it
-around 0. It generates random numbers in the range <span class="math">\([1..2^{2B}-1]\)</span>, with a
-PDF <span class="math">\(P(x) = 2^{-B}-2^{-2B}|x-2^B+1|\)</span>:</p>
+around 0. It generates random numbers in the range <math xmlns="http://www.w3.org/1998/Math/MathML">
+<mrow><mo>[</mo><mn>1</mn><mo>.</mo><mo>.</mo><msup><mn>2</mn>
+<mrow><mn>2</mn><mi>B</mi></mrow></msup><mo>-</mo><mn>1</mn><mo>]</mo></mrow></math>, with a
+PDF <math xmlns="http://www.w3.org/1998/Math/MathML">
+<mrow><mi>P</mi><mo>(</mo><mi>x</mi><mo>)</mo><mo>=</mo><msup><mn>2</mn>
+<mrow><mo>-</mo><mi>B</mi></mrow></msup><mo>-</mo><msup><mn>2</mn>
+<mrow><mo>-</mo><mn>2</mn><mi>B</mi></mrow></msup><mo>|</mo><mi>x</mi><mo>-</mo><msup><mn>2</mn><mi>B</mi></msup><mo>+</mo><mn>1</mn><mo>|</mo></mrow></math>:</p>
 <div class="highlight-none"><div class="highlight"><pre>#define POLYNOMIAL 0xEDB88320
 #define B 8
 
@@ -107,7 +111,7 @@ performing a series of multiply accumulate operations.</p>
       </div>
       <div class="sphinxsidebar" id='d2'>
         <div class="sphinxsidebarwrapper">
-<h3><a href="index.html">Tips and tricks (0v1)</a></h3>
+<h3><a href="index.html">Tips and Tricks</a></h3>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="serial-index.html">Serial and Stream processing</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="numeric-index.html">Numeric processing</a><ul class="current">
@@ -119,6 +123,7 @@ performing a series of multiply accumulate operations.</p>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="hash-tables.html">Hash tables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="crc.html">Computing and Checking CRCs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="short-fifo.html">Building short FIFOs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="threading-speedup.html">Using multiple threads for super linear speedup</a></li>
 <li class="toctree-l1"><a class="reference internal" href="assembly-index.html">Assembly Tips and Tricks</a></li>

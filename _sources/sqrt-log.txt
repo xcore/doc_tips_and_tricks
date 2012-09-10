@@ -7,7 +7,7 @@ estimate the logarithm of a number. Assuming :math:`x \not = 0`, then:
 
 .. math::
 
-  \lfloor \log_2 x \rfloor = bpw - 1 - clz(x)
+  floor( \log_2 x ) = bpw - 1 - clz(x)
 
 This logarithm can be used as a first estimate for a square root,
 since:
@@ -35,8 +35,5 @@ will produce an accurate square root::
 
 See Hacker's delight [warrenjr]_ and Paul Hsieh's
 website [sqrt-hsieh]_ for an in-depth discussion and better methods.
-
-
-.. [warrenjr] Henry S Warren, *Hacker's Delight*, ISBN 0201914654
 
 .. [sqrt-hsieh] Paul Hsieh, http://www.azillionmonkeys.com/qed/sqroot.html
