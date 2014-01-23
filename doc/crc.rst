@@ -170,7 +170,7 @@ transmitted plain, or they may have to be inverted.
 XS1 CRC instructions
 --------------------
 
-The XMOS XS1 instructions has two instructions to compute a CRC.
+The XMOS XS1 ISA has two instructions to compute a CRC.
 
 * The CRC instruction computes a new remainder, given a polynomial and a
   a current remainder, and 32 input bits.
@@ -187,7 +187,7 @@ The XS1 CRC instruction normally incorporates 32 input bits into the CRC
 calculation, producing a new remainder. By shifting the remainder and the
 data before the CRC instruction we can use it incorporates any number of
 input bits up to 32. The ``crcn`` function defined below uses the CRC
-instruction to computes a new remainder given a polynomial, a current
+instruction to compute a new remainder given a polynomial, a current
 remainder and ``n`` input bits store in the least significant bits of
 ``data``::
 
@@ -196,9 +196,9 @@ remainder and ``n`` input bits store in the least significant bits of
     crc32(remainder << (32 - n), remainder >> n | (data << (32 - n)), poly);
   }
 
-The first ``(32 - n)`` of the CRC instruction reverse the shifting of the
-remainder and the data. The final ``n`` steps of the CRC instruction compute
-the desired number of CRC steps over the ``n`` input bits. The ``crcn`
+The first ``(32 - n)`` steps of the CRC instruction reverse the shifting of
+the remainder and the data. The final ``n`` steps of the CRC instruction
+compute the desired number of CRC steps over the ``n`` input bits. The ``crcn`
 function can be further optimized by noticing that the MACCU instruction can
 be used to replace some of the shifts::
 
@@ -211,8 +211,8 @@ be used to replace some of the shifts::
   }
 
 The mask (1 << (32 - n) - 1) can alternatively be calculated using the
-(~0U >> n). If the incoming input data is known to be all zeros then the
-``crcn`` function can be simplified to::
+(~0U >> n). If the incoming input data is known to be all zeros we can
+simplify the ``crcn`` function to::
 
   void crcn_zero(uint32_t &remainder, uint32_t poly, unsigned n)
   {
@@ -231,8 +231,8 @@ applied 0, 1, 2, or 3 times.
 
 There are cases where the number of bits is not a multiple of 8; for
 example in the case of a CAN packet. One efficient method of computing the
-CRC in this case is to apply the ``crcn`` function defined above on the
-misaligned input bits.
+CRC in this case is to apply the ``crcn`` function defined on the misaligned
+input bits.
 
 Another efficient method of computing the CRC in cases where the bit-stream
 is not a whole number of bytes to prepend an N-bit packet with
