@@ -167,26 +167,6 @@ The CRC that is transmitted
 The final CRC of a polynomial of order N is N bits, and these are either
 transmitted plain, or they may have to be inverted.
 
-
-Computing a CRC over an odd number of bits
-------------------------------------------
-
-Many CRCs are computed over a bit-stream which is a whole number of bytes
-long. In this case, the CRC32 instruction can be used on all words of data
-until there are 0, 1, 2, or 3 bytes left, whereupon a CRC8 instruction is
-applied 0, 1, 2, or 3 times.
-
-There are cases where the number of bits is not a multiple of 8; for
-example in the case of a CAN packet. In that case the most efficient
-solution is to prepend an N-bit packet with ``32-(N mod 32)`` zero bits.
-This will align the end of the packet onto a 32-bit boundary, meaning that
-CRC32 instructions can be used all the way. The only problem is to realign
-each word. This can be done with a MACCU as is shown in an earlier chapter
-of this document.
-
-Note that if the alignment of the final bit is not known in advance, then
-up to eight final bits will have to be folded in one at a time.
-
 XS1 CRC instructions
 --------------------
 
@@ -199,5 +179,70 @@ The XMOS XS1 instructions has two instructions to compute a CRC.
   a current remainder, and 8 input bits. In addition, it shifts 8 bits outs
   of the data word, enabling multiple CRC8 instructions to be chained to
   fold 16 or 24 bits into the CRC.
+
+Using the CRC instruction with less than 32 input bits
+------------------------------------------------------
+
+The XS1 CRC instruction normally incorporates 32 input bits into the CRC
+calculation, producing a new remainder. By shifting the remainder and the
+data before the CRC instruction we can use it incorporates any number of
+input bits up to 32. The ``crcn`` function defined below uses the CRC
+instruction to computes a new remainder given a polynomial, a current
+remainder and ``n`` input bits store in the least significant bits of
+``data``::
+
+  void crcn(unsigned &remainder, unsigned data, unsigned poly, unsigned n)
+  {
+    crc32(remainder << (32 - n), remainder >> n | (data << (32 - n)), poly);
+  }
+
+The first ``(32 - n)`` of the CRC instruction reverse the shifting of the
+remainder and the data. The final ``n`` steps of the CRC instruction compute
+the desired number of CRC steps over the ``n`` input bits. The ``crcn`
+function can be further optimized by noticing that the MACCU instruction can
+be used to replace some of the shifts::
+
+  void crcn(uint32_t &remainder, uint32_t data, uint32_t poly, unsigned n)
+  {
+    unsigned shift = 32 - n;
+    unsigned mask = (1 << shift) - 1;
+    { data, remainder } = mac(remainder, mask, data << shift, remainder);
+    crc32(remainder, data, poly);
+  }
+
+The mask (1 << (32 - n) - 1) can alternatively be calculated using the
+(~0U >> n). If the incoming input data is known to be all zeros then the
+``crcn`` function can be simplified to::
+
+  void crcn_zero(uint32_t &remainder, uint32_t poly, unsigned n)
+  {
+    unsigned mask = ~0U >> n;
+    { data, remainder } = mac(remainder, mask, 0, remainder);
+    crc32(remainder, data, poly);
+  }
+
+Computing a CRC over an odd number of bits
+------------------------------------------
+
+Many CRCs are computed over a bit-stream which is a whole number of bytes
+long. In this case, the CRC32 instruction can be used on all words of data
+until there are 0, 1, 2, or 3 bytes left, whereupon a CRC8 instruction is
+applied 0, 1, 2, or 3 times.
+
+There are cases where the number of bits is not a multiple of 8; for
+example in the case of a CAN packet. One efficient method of computing the
+CRC in this case is to apply the ``crcn`` function defined above on the
+misaligned input bits.
+
+Another efficient method of computing the CRC in cases where the bit-stream
+is not a whole number of bytes to prepend an N-bit packet with
+``32-(N mod 32)`` zero bits.
+This will align the end of the packet onto a 32-bit boundary, meaning that
+CRC32 instructions can be used all the way. The only problem is to realign
+each word. This can be done with a MACCU as is shown in an earlier chapter
+of this document.
+
+Note that if the alignment of the final bit is not known in advance, then
+up to eight final bits will have to be folded in one at a time.
 
 .. [wikipedia-CRC] *CRC pages on Wikipedia* http://en.wikipedia.org/wiki/Cyclic_redundancy_check
